@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<title>EMI & Prepayment Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: home screen of six calculator cards; each calculator is its own view with a back link,
+   a quick switcher, a how-to strip, then inputs (left) and results (right), stacking on phones */
+:root{
+  --paper:#f4f6f3; --card:#ffffff; --ink:#15233b; --muted:#5d6878; --line:#dce2da;
+  --soft:#e7efe9; --accent:#0d6e66; --accent-ink:#ffffff; --interest:#b25a0a; --good:#177245; --warn:#a33a1f;
+  --display:"Outfit", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0f1517; --card:#162024; --ink:#e6ecee; --muted:#97a3aa; --line:#2a373b;
+  --soft:#1b2b29; --accent:#3cc7b6; --accent-ink:#06211e; --interest:#f0a24a; --good:#5fd394; --warn:#f08a6c; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --paper:#0f1517; --card:#162024; --ink:#e6ecee; --muted:#97a3aa; --line:#2a373b;
+  --soft:#1b2b29; --accent:#3cc7b6; --accent-ink:#06211e; --interest:#f0a24a; --good:#5fd394; --warn:#f08a6c; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.opt{border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.opt.on{border-color:var(--accent);background:var(--soft)}
+.opt > .check{font-weight:600;font-size:.95rem}
+.opt > .check small{font-weight:400;color:var(--muted);font-size:.8rem;margin-left:4px}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 48px}
+button,input,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* home */
+.home h1{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,3.4vw,2.3rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.home > p{margin:.4rem 0 22px;color:var(--muted);max-width:62ch}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.cards{grid-template-columns:minmax(0,1fr)}}
+.tool{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;color:var(--ink);transition:border-color .15s, transform .15s}
+.tool:hover{border-color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.tool:hover{transform:translateY(-2px)}}
+.tool .ic{width:40px;height:40px;border-radius:10px;background:var(--soft);color:var(--accent);display:grid;place-items:center}
+.tool .ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tool b{font-family:var(--display);font-size:1.12rem;font-weight:600}
+.tool span{color:var(--muted);font-size:.9rem}
+.tool em{font-style:normal;color:var(--accent);font-weight:600;font-size:.86rem;margin-top:auto}
+.home .foot{margin-top:18px;font-size:.82rem;color:var(--muted)}
+
+/* calculator chrome */
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.back{font:600 .9rem var(--body);background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.switch{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;padding:2px}
+.switch button{font:600 .84rem var(--body);background:none;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.switch button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.viewhead{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.chip{align-self:flex-start;font-size:.74rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.viewhead h2{font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,2.8vw,1.9rem);margin:0;text-wrap:balance}
+.steps{display:flex;flex-wrap:wrap;gap:8px 20px;margin:4px 0 0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;color:var(--muted);font-size:.9rem;display:flex;gap:8px;align-items:baseline}
+.steps li::before{content:counter(s);font:600 .74rem var(--body);width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--accent);display:inline-grid;place-items:center;flex:none;transform:translateY(-1px)}
+
+.grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:6px 0 0;font-weight:600}
+.panel h3:first-child{margin-top:0}
+.results{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label,.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=number],input[type=month],input[type=text],select{width:100%;font:500 1rem var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:9px 10px;min-width:0}
+.hint{font-size:.78rem;color:var(--muted)}
+.seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px}
+.seg button{flex:1;font:600 .86rem var(--body);border:0;border-radius:6px;padding:7px 6px;background:none;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;gap:8px;background:var(--soft);border-radius:8px;padding:10px;position:relative}
+.item .x{position:absolute;top:6px;right:6px;border:0;background:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1;padding:4px}
+.item .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.item .field label{font-size:.74rem}
+.add{align-self:flex-start;font:600 .86rem var(--body);color:var(--accent);background:none;border:1px dashed var(--accent);border-radius:7px;padding:7px 12px;cursor:pointer}
+.example{display:inline-block;font-size:.68rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--interest);border:1px solid currentColor;border-radius:4px;padding:0 6px;margin-left:6px;vertical-align:1px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.kpi .k{font-size:.76rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.kpi .v{font-family:var(--display);font-size:1.45rem;font-weight:600;margin-top:2px;line-height:1.2;overflow-wrap:anywhere}
+.kpi .s{font-size:.8rem;color:var(--muted);margin-top:2px}
+.kpi.hero{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.kpi.hero .k,.kpi.hero .s{color:inherit;opacity:.88}
+.pos{color:var(--good)} .neg{color:var(--warn)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.card h4{font-family:var(--display);font-size:1.02rem;font-weight:600;margin:0 0 10px}
+.say{font-size:.95rem;margin:0}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+.split{display:flex;height:16px;border-radius:5px;overflow:hidden;background:var(--soft)}
+.split span{display:block;height:100%}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.84rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+.tablewrap{overflow-x:auto;max-height:440px;overflow-y:auto;border:1px solid var(--line);border-radius:8px}
+.tablewrap.free{max-height:none}
+table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:520px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:var(--card);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+tfoot td{font-weight:600;border-bottom:0}
+tr.yr{cursor:pointer} tr.yr:hover{background:var(--soft)}
+tr.mo td{color:var(--muted);font-size:.82rem;background:var(--paper)}
+tr.hl td{background:var(--soft)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 7px;border-radius:99px;background:var(--soft);color:var(--accent);margin-left:6px}
+.best{color:var(--good);font-weight:600}
+svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
+.chart-grid{stroke:var(--line);stroke-width:1}
+.line-a{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:5 4}
+.line-b{fill:none;stroke:var(--accent);stroke-width:2.5}
+.area-b{fill:var(--accent);opacity:.10}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<!-- ================= HOME ================= -->
+<section id="home" class="home">
+  <h1>EMI &amp; Prepayment Planner</h1>
+  <p>Five separate calculators for a car or home loan. Pick the question you want answered. Each one opens with example figures from the car loan offers we discussed, which you can change.</p>
+  <div class="cards">
+    <button class="tool" data-go="emi" type="button"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><b>EMI calculator</b><span>What will my EMI be, and how much interest will I pay? Fixed or floating rate.</span><em>Open →</em></button>
+    <button class="tool" data-go="fees" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><b>One-time charges</b><span>What do I pay upfront: processing fee, stamp duty, RTO?</span><em>Open →</em></button>
+    <button class="tool" data-go="part" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></div><b>Part payment</b><span>How much do I save by paying extra: a lump sum or extra EMIs?</span><em>Open →</em></button>
+    <button class="tool" data-go="close" type="button"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div><b>Foreclosure</b><span>How much do I need to close my loan fully, and what do I save?</span><em>Open →</em></button>
+    <button class="tool" data-go="compare" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 20V11M12 20V4M18 20v-7"/></svg></div><b>Compare banks</b><span>Which offer costs least overall: fixed vs floating, fees, charges?</span><em>Open →</em></button>
+  </div>
+  <p class="foot">Everything you enter stays in this browser only. Reducing-balance interest, calculated monthly, as Indian banks use.</p>
+</section>
+
+<!-- ================= CALC CHROME ================= -->
+<nav id="topbar" class="topbar" hidden>
+  <button class="back" type="button" id="backbtn">← All calculators</button>
+  <div class="switch" id="switch">
+    <button type="button" data-go="emi">EMI</button>
+    <button type="button" data-go="fees">One-time charges</button>
+    <button type="button" data-go="part">Part payment</button>
+    <button type="button" data-go="close">Foreclosure</button>
+    <button type="button" data-go="compare">Compare banks</button>
+  </div>
+</nav>
+
+<!-- ================= 1. EMI (fixed or floating) ================= -->
+<section class="view" id="v-emi" hidden>
+  <div class="viewhead"><span class="chip">EMI calculator</span><h2>What will my EMI be?</h2>
+    <ol class="steps"><li>Enter loan amount, rate and tenure</li><li>Choose fixed or floating</li><li>For floating, add the rate changes you expect</li><li>Read your EMI, interest and schedule</li></ol></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Your loan</h3>
+      <div class="field"><label for="a-amt">Loan amount (₹)</label><input id="a-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="a-amt-h"></span></div>
+      <div class="row2">
+        <div class="field"><label for="a-rate" id="a-rate-l">Interest rate (% a year)</label><input id="a-rate" type="number" min="0" step="0.05" value="7.70"></div>
+        <div class="field"><label for="a-ten">Tenure (months)</label><input id="a-ten" type="number" min="1" max="480" value="84"><span class="hint" id="a-ten-h"></span></div>
+      </div>
+      <div class="field"><label for="a-start">First EMI month</label><input id="a-start" type="month" value="2026-11"></div>
+      <div class="field" id="a-type-wrap"><span class="lbl">Rate type</span>
+        <div class="seg" id="a-type"><button type="button" data-v="fixed" aria-pressed="true">Fixed</button><button type="button" data-v="floating" aria-pressed="false">Floating</button></div>
+        <span class="hint" id="a-type-h"></span>
+      </div>
+      <div id="a-float" class="list" hidden>
+        <h3>Expected rate changes <span class="example">Example</span></h3>
+        <div class="list" id="a-rc"></div>
+        <button class="add" type="button" id="a-rc-add">+ Add a rate change</button>
+        <div class="field"><label for="a-mode">When the rate changes, the bank will</label>
+          <select id="a-mode"><option value="tenure">Change the EMI, keep the tenure</option><option value="emi">Keep the EMI, change the tenure</option></select>
+          <span class="hint">Car loans usually change the EMI. Home loans usually change the tenure. Ask your bank which it does.</span></div>
+      </div>
+      <h3>Interest method</h3>
+      <div class="seg" id="a-method"><button type="button" data-v="reducing" aria-pressed="true">Reducing balance</button><button type="button" data-v="flat" aria-pressed="false">Flat rate</button></div>
+      <span class="hint">Banks use reducing balance. Some dealers and NBFCs quote a flat rate, which costs far more than it sounds. A flat rate is always fixed.</span>
+    </div>
+    <div class="results">
+      <div class="kpis">
+        <div class="kpi hero"><div class="k" id="a-k1">Monthly EMI</div><div class="v" id="a-emi">–</div><div class="s" id="a-emi-s"></div></div>
+        <div class="kpi"><div class="k">Total interest</div><div class="v" id="a-int">–</div><div class="s" id="a-int-s"></div></div>
+        <div class="kpi"><div class="k">Total you repay</div><div class="v" id="a-tot">–</div><div class="s" id="a-tot-s"></div></div>
+        <div class="kpi"><div class="k" id="a-k4">Last EMI</div><div class="v" id="a-v4">–</div><div class="s" id="a-s4"></div></div>
+      </div>
+      <div class="card" id="a-cmp-card" hidden><h4>If the rate never changes vs with your changes</h4>
+        <div class="tablewrap free"><table id="a-cmp"><thead><tr><th></th><th>Rate stays</th><th>With changes</th><th>Difference</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h4>Principal vs interest</h4>
+        <div class="split"><span id="a-bp" style="background:var(--accent)"></span><span id="a-bi" style="background:var(--interest)"></span></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Principal <b id="a-lp"></b></span><span><i style="background:var(--interest)"></i>Interest <b id="a-li"></b></span></div>
+      </div>
+      <div class="card"><h4>Repayment schedule</h4><p class="note" style="margin-bottom:10px">Tap a year to see each month.</p>
+        <div class="tablewrap"><table id="a-table"><thead><tr><th>Year</th><th>Rate</th><th>EMI</th><th>Interest</th><th>Principal</th><th>Balance left</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. ONE-TIME CHARGES ================= -->
+<section class="view" id="v-fees" hidden>
+  <div class="viewhead"><span class="chip">One-time charges</span><h2>What do I pay before the first EMI?</h2>
+    <ol class="steps"><li>Enter your loan</li><li>Fill in each charge the bank quotes</li><li>See the total and the true yearly rate</li></ol></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Your loan</h3>
+      <div class="field"><label for="c-amt">Loan amount (₹)</label><input id="c-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="c-amt-h"></span></div>
+      <div class="row2">
+        <div class="field"><label for="c-rate">Interest rate (%)</label><input id="c-rate" type="number" min="0" step="0.05" value="7.70"></div>
+        <div class="field"><label for="c-ten">Tenure (months)</label><input id="c-ten" type="number" min="1" max="480" value="84"><span class="hint" id="c-ten-h"></span></div>
+      </div>
+      <h3>Processing fee <span class="example">Example</span></h3>
+      <div class="seg" id="c-pmode"><button type="button" data-v="flat" aria-pressed="true">Fixed amount</button><button type="button" data-v="pct" aria-pressed="false">% of loan</button></div>
+      <div class="field" id="c-flat-wrap"><label for="c-pf">Amount (₹)</label><input id="c-pf" type="number" min="0" step="100" value="1000"></div>
+      <div id="c-pct-wrap" class="list" hidden>
+        <div class="field"><label for="c-pp">Percent of loan (%)</label><input id="c-pp" type="number" min="0" step="0.05" value="0.25"></div>
+        <div class="row2">
+          <div class="field"><label for="c-pmin">Minimum (₹)</label><input id="c-pmin" type="number" min="0" step="100" value="1000"></div>
+          <div class="field"><label for="c-pmax">Maximum (₹)</label><input id="c-pmax" type="number" min="0" step="100" value="5000"><span class="hint">0 = no cap</span></div>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="c-waive"> Waived under a festive offer</label>
+      <h3>Other bank charges</h3>
+      <div class="field"><label for="c-doc">Documentation charges (₹)</label><input id="c-doc" type="number" min="0" step="100" value="0"><span class="hint">Most PSU banks charge nothing. HDFC lists ₹700.</span></div>
+      <label class="check"><input type="checkbox" id="c-gst" checked> Add 18% GST to processing and documentation</label>
+      <h3>Stamp duty and RTO</h3>
+      <div class="row2">
+        <div class="field"><label for="c-stamp">Stamp duty (₹)</label><input id="c-stamp" type="number" min="0" step="50" value="200"></div>
+        <div class="field"><label for="c-frank">Franking / e-stamp fee (₹)</label><input id="c-frank" type="number" min="0" step="10" value="100"></div>
+      </div>
+      <span class="hint">A private-car loan in Telangana usually needs only a nominal stamp duty. Ask the bank for the amount it collects "at actuals".</span>
+      <div class="field"><label for="c-rto">RTO hypothecation entry, Form 34 (₹)</label><input id="c-rto" type="number" min="0" step="100" value="1500"></div>
+      <label class="check"><input type="checkbox" id="c-dealer"> The dealer already includes this in the on-road price</label>
+      <h3>Anything else</h3>
+      <div class="list" id="c-other"></div>
+      <button class="add" type="button" id="c-other-add">+ Add a charge</button>
+      <h3>When you finish the loan</h3>
+      <div class="row2">
+        <div class="field"><label for="c-noc">Bank NOC charge (₹)</label><input id="c-noc" type="number" min="0" step="100" value="0"></div>
+        <div class="field"><label for="c-rto2">RTO removal, Form 35 (₹)</label><input id="c-rto2" type="number" min="0" step="100" value="1500"></div>
+      </div>
+    </div>
+    <div class="results">
+      <div class="kpis">
+        <div class="kpi hero"><div class="k">Paid upfront</div><div class="v" id="c-up">–</div><div class="s" id="c-up-s"></div></div>
+        <div class="kpi"><div class="k">To the bank</div><div class="v" id="c-bank">–</div><div class="s">Processing, documentation, GST</div></div>
+        <div class="kpi"><div class="k">Stamp duty &amp; RTO</div><div class="v" id="c-gov">–</div><div class="s">Same at every bank</div></div>
+        <div class="kpi"><div class="k">True yearly rate</div><div class="v" id="c-apr">–</div><div class="s" id="c-apr-s"></div></div>
+      </div>
+      <div class="card"><h4>Charge by charge</h4>
+        <div class="tablewrap free"><table id="c-table"><thead><tr><th>Charge</th><th>Amount</th><th>GST</th><th>Total</th><th>Paid to</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+        <p class="note" id="c-close" style="margin-top:10px"></p></div>
+      <div class="card"><h4>What it means</h4><p class="say" id="c-mean"></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. PART PAYMENT ================= -->
+<section class="view" id="v-part" hidden>
+  <div class="viewhead"><span class="chip">Part payment</span><h2>How much do I save by paying extra?</h2>
+    <ol class="steps"><li>Enter your loan</li><li>Choose extra EMIs, a fixed amount, or a one-time sum</li><li>Choose shorter tenure or lower EMI</li><li>See the saving</li></ol></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Your loan</h3>
+      <div class="field"><label for="d-amt">Loan amount (₹)</label><input id="d-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="d-amt-h"></span></div>
+      <div class="row2">
+        <div class="field"><label for="d-rate">Interest rate (%)</label><input id="d-rate" type="number" min="0" step="0.05" value="7.70"></div>
+        <div class="field"><label for="d-ten">Tenure (months)</label><input id="d-ten" type="number" min="1" max="480" value="84"><span class="hint" id="d-ten-h"></span></div>
+      </div>
+      <div class="field"><label for="d-start">First EMI month</label><input id="d-start" type="month" value="2026-11"></div>
+      <h3>What extra will you pay? <span class="example">Example</span></h3>
+      <span class="hint">Tick one or more. Only ticked options are counted.</span>
+      <div class="opt" id="d-opt-emis">
+      <label class="check"><input type="checkbox" id="d-on-emis" checked> Extra EMIs <small>no amount needed</small></label>
+      <div id="d-emis-wrap" class="list">
+        <div class="row2">
+          <div class="field"><label for="d-ecount">Extra EMIs per year</label>
+            <select id="d-ecount"><option value="1" selected>1 a year</option><option value="2">2 a year (every 6 months)</option><option value="3">3 a year (every 4 months)</option><option value="4">4 a year (every 3 months)</option><option value="6">6 a year (every 2 months)</option><option value="12">12 a year (double EMI)</option></select></div>
+          <div class="field"><label for="d-estart">First one after EMI no.</label><input id="d-estart" type="number" min="1" value="12"></div>
+        </div>
+        <span class="hint" id="d-emis-h"></span>
+      </div>
+      </div>
+      <div class="opt" id="d-opt-amt">
+      <label class="check"><input type="checkbox" id="d-on-amt"> Fixed amount <small>e.g. ₹50,000, 3 times a year</small></label>
+      <div id="d-amt-wrap" class="list" hidden>
+        <div class="row2">
+          <div class="field"><label for="d-xamt">Amount each time (₹)</label><input id="d-xamt" type="number" min="0" step="5000" value="50000"></div>
+          <div class="field"><label for="d-xtimes">Times per year</label>
+            <select id="d-xtimes"><option value="1">Once a year</option><option value="2">2 times (every 6 months)</option><option value="3" selected>3 times (every 4 months)</option><option value="4">4 times (every 3 months)</option><option value="6">6 times (every 2 months)</option><option value="12">Every month</option></select></div>
+        </div>
+        <div class="field"><label for="d-xstart">First one after EMI no.</label><input id="d-xstart" type="number" min="1" value="4"></div>
+        <span class="hint" id="d-amt-h2"></span>
+      </div>
+      </div>
+      <div class="opt" id="d-opt-once">
+        <label class="check"><input type="checkbox" id="d-on-once"> One-time lump sum <small>e.g. a bonus</small></label>
+        <div class="row2" id="d-once-fields" hidden>
+          <div class="field"><label for="d-oamt">Lump sum (₹)</label><input id="d-oamt" type="number" min="0" step="10000" value="200000"></div>
+          <div class="field"><label for="d-om">After EMI no.</label><input id="d-om" type="number" min="1" value="24"></div>
+        </div>
+      </div>
+      <div class="field"><label for="d-mode">After each extra payment</label>
+        <select id="d-mode"><option value="tenure">Keep the EMI, finish sooner</option><option value="emi">Keep the tenure, lower the EMI</option></select>
+        <span class="hint">Keeping the EMI saves more interest.</span></div>
+      <h3>Charges</h3>
+      <div class="field"><label for="d-ppc">Part-payment charge (% of amount paid)</label><input id="d-ppc" type="number" min="0" step="0.5" value="0"><span class="hint">0% for floating-rate loans to individuals sanctioned from 1 Jan 2026. Fixed-rate loans may charge 3–5%.</span></div>
+      <label class="check"><input type="checkbox" id="d-gst" checked> Add 18% GST to the charge</label>
+    </div>
+    <div class="results">
+      <div class="kpis">
+        <div class="kpi hero"><div class="k">Net saving</div><div class="v" id="d-net">–</div><div class="s" id="d-net-s"></div></div>
+        <div class="kpi"><div class="k">Interest saved</div><div class="v" id="d-sv">–</div><div class="s" id="d-sv-s"></div></div>
+        <div class="kpi"><div class="k">Loan ends</div><div class="v" id="d-end">–</div><div class="s" id="d-end-s"></div></div>
+        <div class="kpi"><div class="k">Extra paid in</div><div class="v" id="d-pd">–</div><div class="s" id="d-pd-s"></div></div>
+      </div>
+      <div class="card"><h4>Balance left over time</h4><div id="d-chart" style="overflow-x:auto"></div>
+        <div class="legend"><span><i style="background:var(--muted)"></i>Regular EMIs only</span><span><i style="background:var(--accent)"></i>With extra payments</span></div></div>
+      <div class="card"><h4>Before and after</h4><div class="tablewrap free"><table id="d-cmp"><thead><tr><th></th><th>Regular EMIs only</th><th>With extra payments</th><th>Difference</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h4>Schedule with extra payments</h4><p class="note" style="margin-bottom:10px">Tap a year to see each month. Highlighted years include an extra payment.</p>
+        <div class="tablewrap"><table id="d-table"><thead><tr><th>Year</th><th>EMI</th><th>Interest</th><th>Principal</th><th>Extra paid</th><th>Charges</th><th>Balance left</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 5. FORECLOSURE ================= -->
+<section class="view" id="v-close" hidden>
+  <div class="viewhead"><span class="chip">Foreclosure</span><h2>How much to close my loan fully?</h2>
+    <ol class="steps"><li>Enter your loan</li><li>Pick when you want to close it</li><li>Add the bank's foreclosure charge, if any</li><li>See the amount and the saving</li></ol></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Your loan</h3>
+      <div class="field"><label for="f-amt">Loan amount (₹)</label><input id="f-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="f-amt-h"></span></div>
+      <div class="row2">
+        <div class="field"><label for="f-rate">Interest rate (%)</label><input id="f-rate" type="number" min="0" step="0.05" value="7.70"></div>
+        <div class="field"><label for="f-ten">Tenure (months)</label><input id="f-ten" type="number" min="1" max="480" value="84"><span class="hint" id="f-ten-h"></span></div>
+      </div>
+      <div class="field"><label for="f-start">First EMI month</label><input id="f-start" type="month" value="2026-11"></div>
+      <h3>Closing</h3>
+      <div class="field"><label for="f-m">Close after EMI no.</label><input id="f-m" type="number" min="1" value="36"><span class="hint" id="f-m-h"></span></div>
+      <div class="field"><label for="f-c">Foreclosure charge (% of balance)</label><input id="f-c" type="number" min="0" step="0.5" value="0"><span class="hint">0% for floating-rate loans to individuals sanctioned from 1 Jan 2026. Fixed-rate loans may charge 3–6%; HDFC allows no foreclosure in the first 6 months.</span></div>
+      <label class="check"><input type="checkbox" id="f-gst" checked> Add 18% GST to the charge</label>
+    </div>
+    <div class="results">
+      <div class="kpis">
+        <div class="kpi hero"><div class="k">Amount to close</div><div class="v" id="f-pay">–</div><div class="s" id="f-pay-s"></div></div>
+        <div class="kpi"><div class="k">Balance left</div><div class="v" id="f-bal">–</div><div class="s" id="f-bal-s"></div></div>
+        <div class="kpi"><div class="k">Interest avoided</div><div class="v" id="f-av">–</div><div class="s" id="f-av-s"></div></div>
+        <div class="kpi"><div class="k">Net saving</div><div class="v" id="f-net">–</div><div class="s" id="f-net-s"></div></div>
+      </div>
+      <div class="card"><h4>In plain words</h4><p class="say" id="f-say"></p></div>
+      <div class="card"><h4>If you close at the end of each year</h4><p class="note" style="margin-bottom:10px">Your chosen EMI is highlighted.</p>
+        <div class="tablewrap free"><table id="f-table"><thead><tr><th>Close after</th><th>Balance left</th><th>Charge</th><th>Amount to pay</th><th>Interest avoided</th><th>Net saving</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 6. COMPARE ================= -->
+<section class="view" id="v-compare" hidden>
+  <div class="viewhead"><span class="chip">Compare banks</span><h2>Which offer costs least overall?</h2>
+    <ol class="steps"><li>Enter the loan and tenure</li><li>Fill in each bank's rate and fees</li><li>Test a rate rise and a prepayment</li><li>See the cheapest</li></ol></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>The loan</h3>
+      <div class="field"><label for="g-amt">Loan amount (₹)</label><input id="g-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="g-amt-h"></span></div>
+      <div class="field"><label for="g-ten">Tenure (months)</label><input id="g-ten" type="number" min="1" max="480" value="84"><span class="hint" id="g-ten-h"></span></div>
+      <h3>If floating rates rise</h3>
+      <div class="row2">
+        <div class="field"><label for="g-up">Rise by (%)</label><input id="g-up" type="number" step="0.05" value="0.50"></div>
+        <div class="field"><label for="g-upm">From EMI no.</label><input id="g-upm" type="number" min="1" value="3"></div>
+      </div>
+      <span class="hint">Applies only to floating offers. Enter a negative number to test a rate cut, or 0 for no change.</span>
+      <h3>If you prepay</h3>
+      <div class="row2">
+        <div class="field"><label for="g-pp">Lump sum (₹)</label><input id="g-pp" type="number" min="0" step="10000" value="200000"></div>
+        <div class="field"><label for="g-ppm">After EMI no.</label><input id="g-ppm" type="number" min="1" value="24"></div>
+      </div>
+      <span class="hint">Enter 0 if you don't plan to prepay.</span>
+      <label class="check"><input type="checkbox" id="g-gst" checked> Add 18% GST to fees and charges</label>
+    </div>
+    <div class="results">
+      <div class="card"><h4>Offers <span class="example">Example</span></h4>
+        <p class="note" style="margin-bottom:10px">Rates from our chat for CIBIL 790. In the fee box, enter each bank's processing plus documentation charges. Stamp duty and RTO are the same at every bank, so leave them out.</p>
+        <div class="list" id="g-offers"></div>
+        <button class="add" type="button" id="g-add" style="margin-top:8px">+ Add an offer</button></div>
+      <div class="card"><h4>Result</h4>
+        <div class="tablewrap free"><table id="g-table"><thead><tr><th>Bank</th><th>First EMI</th><th>Interest</th><th>Fees + charges</th><th>Total cost</th><th>vs cheapest</th></tr></thead><tbody></tbody></table></div>
+        <p class="say" id="g-say" style="margin-top:10px"></p></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const num=(id,d=0)=>{ const v=parseFloat($(id).value); return isFinite(v)?v:d; };
+const inr=n=>(n<0?'−':'')+'₹'+Math.round(Math.abs(n)).toLocaleString('en-IN');
+const short=n=>{ const a=Math.abs(n), s=n<0?'−':''; if(a>=1e7) return s+'₹'+(a/1e7).toFixed(2)+' Cr'; if(a>=1e5) return s+'₹'+(a/1e5).toFixed(2)+' L'; return inr(n); };
+const words=n=>{ const a=Math.abs(n); if(a>=1e7) return (n/1e7).toFixed(2).replace(/\.?0+$/,'')+' crore'; if(a>=1e5) return (n/1e5).toFixed(2).replace(/\.?0+$/,'')+' lakh'; return ''; };
+const yrs=m=>{ m=Math.round(m); const y=Math.floor(m/12), r=m%12; return ((y?y+' yr'+(y>1?'s':''):'')+(y&&r?' ':'')+(r?r+' mo':''))||'0 mo'; };
+const pct=v=>v.toFixed(2)+'%';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dateOf=(s,m)=>{ const [y,mo]=(s||'2026-11').split('-').map(Number); const t=y*12+(mo-1)+(m-1); return MON[t%12]+' '+Math.floor(t/12); };
+const hintAmt=(id)=>{ const P=num(id+'-amt'); $(id+'-amt-h').textContent=words(P)?'= '+words(P):''; };
+const hintTen=(id)=>{ $(id+'-ten-h').textContent='= '+yrs(Math.max(1,num(id+'-ten',1))); };
+
+// ---------- loan maths ----------
+function pmt(P,a,n){ if(n<=0) return P; const i=a/1200; if(i===0) return P/n; return P*i/(1-Math.pow(1+i,-n)); }
+function nper(P,a,e){ const i=a/1200; if(P<=0) return 0; if(i===0) return P/e; const x=1-P*i/e; if(x<=0) return Infinity; return -Math.log(x)/Math.log(1+i); }
+function solveRate(P,e,n){ let lo=0,hi=80; for(let k=0;k<80;k++){ const m=(lo+hi)/2; if(pmt(P,m,n)>e) hi=m; else lo=m; } return (lo+hi)/2; }
+function simulate(o){
+  const P=o.P, n=Math.max(1,Math.round(o.n)), g=o.gst?1.18:1;
+  const rc=new Map(); (o.rateChanges||[]).forEach(c=>{ if(c.m>=1&&isFinite(c.rate)) rc.set(Math.round(c.m),c.rate); });
+  const due=new Map();
+  (o.prepays||[]).forEach(p=>{ const s=Math.max(1,Math.round(p.m||1));
+    if(p.kind==='once') due.set(s,(due.get(s)||[]).concat([p]));
+    else { const u=p.until>0?p.until:1200, step=Math.max(1,Math.round(p.every||12)); for(let m=s;m<=u;m+=step) due.set(m,(due.get(m)||[]).concat([p])); } });
+  let bal=P, r=o.rate, emi=pmt(P,r,n), end=n, m=0, totI=0, totPP=0, charges=0, fcInfo=null; const rows=[];
+  while(bal>0.5 && m<1200){
+    m++;
+    if(rc.has(m) && rc.get(m)!==r){ r=rc.get(m);
+      if(o.rateMode==='emi'){ const left=nper(bal,r,emi); if(!isFinite(left)) emi=pmt(bal,r,Math.max(1,end-(m-1))); else end=(m-1)+Math.ceil(left); }
+      else emi=pmt(bal,r,Math.max(1,end-(m-1))); }
+    const it=bal*r/1200; let pr=emi-it, pay=emi; if(pr>=bal-0.5){ pr=bal; pay=bal+it; }
+    bal-=pr; totI+=it; let pp=0, ch=0, fc=false;
+    if(bal>0.5 && due.has(m)) due.get(m).forEach(p=>{ let a=(p.kind==='emis'||p.count)? p.count*emi : p.amount; a=Math.min(Math.max(0,a||0),bal); bal-=a; pp+=a; ch+=a*(o.ppCharge||0)/100*g; });
+    if(o.foreclose && m===Math.round(o.foreclose) && bal>0.5){ const c=bal*(o.fcCharge||0)/100*g; fcInfo={m,outstanding:bal,charge:c}; pp+=bal; ch+=c; bal=0; fc=true; }
+    totPP+=pp; charges+=ch;
+    if(pp>0 && bal>0.5){ if(o.prepayMode==='emi') emi=pmt(bal,r,Math.max(1,end-m)); else end=m+Math.ceil(nper(bal,r,emi)); }
+    rows.push({m,rate:r,emi:pay,int:it,pr,pp,ch,bal:Math.max(0,bal),fc});
+  }
+  return {rows,months:rows.length,totI,totPP,charges,firstEmi:rows.length?rows[0].emi:0,lastEmi:emi,fcInfo};
+}
+function flatLoan(P,rate,n){ const totI=P*rate/100*n/12, emi=(P+totI)/n, rows=[]; let bal=P;
+  for(let m=1;m<=n;m++){ bal-=P/n; rows.push({m,rate,emi,int:totI/n,pr:P/n,pp:0,ch:0,bal:Math.max(0,bal)}); }
+  return {rows,months:n,totI,firstEmi:emi,equiv:solveRate(P,emi,n)}; }
+
+// ---------- UI helpers ----------
+const segs={};
+function seg(id,cb){ const el=$(id); el.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false')); cb(); save(); });
+  segs[id]=()=>el.querySelector('[aria-pressed="true"]').dataset.v; return segs[id]; }
+function setSeg(id,v){ $(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v?'true':'false')); }
+let uid=0; const lists={};
+function makeList(cid,tpl,cb){ const c=$(cid);
+  const api={ add(d){ const div=document.createElement('div'); div.className='item'; const k=++uid;
+      div.innerHTML='<button class="x" type="button" aria-label="Remove">×</button>'+tpl(k,d||{});
+      div.querySelector('.x').onclick=()=>{ div.remove(); cb(); save(); };
+      ['input','change'].forEach(ev=>div.addEventListener(ev,()=>{ refreshItem(div); cb(); save(); }));
+      c.appendChild(div); refreshItem(div); },
+    items:()=>[...c.querySelectorAll('.item')].map(readItem) };
+  lists[cid]=api; return api; }
+function refreshItem(div){ const k=div.querySelector('[data-f=kind]'); if(!k) return; const v=k.value;
+  div.querySelector('.f-amount').hidden=v==='emis'; div.querySelector('.f-count').hidden=v!=='emis'; div.querySelector('.f-until').hidden=v==='once';
+  div.querySelector('.f-m label').textContent=v==='once'?'After EMI no.':'First time after EMI no.'; }
+const readItem=div=>{ const o={}; div.querySelectorAll('[data-f]').forEach(i=>{ o[i.dataset.f]=(i.tagName==='SELECT'||i.type==='text')?i.value:parseFloat(i.value); }); return o; };
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const rcTpl=(k,d)=>`<div class="cols" style="padding-right:22px">
+  <div class="field"><label for="rc${k}m">From EMI no.</label><input id="rc${k}m" data-f="m" type="number" min="1" value="${d.m??3}"></div>
+  <div class="field"><label for="rc${k}r">New rate (%)</label><input id="rc${k}r" data-f="rate" type="number" step="0.05" value="${d.rate??8}"></div></div>`;
+const ppTpl=(k,d)=>`<div class="field" style="padding-right:22px"><label for="pp${k}k">Type</label>
+  <select id="pp${k}k" data-f="kind"><option value="once"${d.kind==='once'?' selected':''}>One-time lump sum</option><option value="yearly"${d.kind==='yearly'?' selected':''}>Same lump sum every year</option><option value="emis"${d.kind==='emis'?' selected':''}>Extra EMIs every year</option></select></div>
+  <div class="cols">
+   <div class="field f-amount"><label for="pp${k}a">Amount (₹)</label><input id="pp${k}a" data-f="amount" type="number" min="0" step="5000" value="${d.amount??100000}"></div>
+   <div class="field f-count"><label for="pp${k}c">Extra EMIs</label><input id="pp${k}c" data-f="count" type="number" min="1" max="12" value="${d.count??1}"></div>
+   <div class="field f-m"><label for="pp${k}m">After EMI no.</label><input id="pp${k}m" data-f="m" type="number" min="1" value="${d.m??12}"></div>
+   <div class="field f-until"><label for="pp${k}u">Until EMI no.</label><input id="pp${k}u" data-f="until" type="number" min="0" value="${d.until??0}"><span class="hint">0 = to the end</span></div></div>`;
+const otTpl=(k,d)=>`<div class="cols" style="padding-right:22px">
+  <div class="field"><label for="ot${k}n">Charge</label><input id="ot${k}n" data-f="name" type="text" value="${esc(d.name)}"></div>
+  <div class="field"><label for="ot${k}a">Amount (₹)</label><input id="ot${k}a" data-f="amount" type="number" min="0" step="50" value="${d.amount??0}"></div></div>`;
+const offTpl=(k,d)=>`<div class="field" style="padding-right:22px"><label for="of${k}n">Bank</label><input id="of${k}n" data-f="name" type="text" value="${esc(d.name)}"></div>
+  <div class="cols">
+   <div class="field"><label for="of${k}r">Rate (%)</label><input id="of${k}r" data-f="rate" type="number" step="0.05" value="${d.rate??8}"></div>
+   <div class="field"><label for="of${k}t">Rate type</label><select id="of${k}t" data-f="type"><option value="floating"${d.type!=='fixed'?' selected':''}>Floating</option><option value="fixed"${d.type==='fixed'?' selected':''}>Fixed</option></select></div>
+   <div class="field"><label for="of${k}f">Fees (₹)</label><input id="of${k}f" data-f="fee" type="number" min="0" step="100" value="${d.fee??0}"></div>
+   <div class="field"><label for="of${k}c">Prepay charge (%)</label><input id="of${k}c" data-f="ppc" type="number" min="0" step="0.5" value="${d.ppc??0}"></div></div>`;
+
+function schedule(tb,rows,start,cols){
+  tb.innerHTML=''; const ys=[]; rows.forEach(r=>{ const y=Math.ceil(r.m/12); (ys[y-1]=ys[y-1]||[]).push(r); });
+  ys.forEach((l,i)=>{ const s=k=>l.reduce((a,r)=>a+(r[k]||0),0);
+    const ag={label:'Year '+(i+1)+' <span class="hint">('+dateOf(start,l[0].m)+' – '+dateOf(start,l[l.length-1].m)+')</span>', rate:l[l.length-1].rate, emi:s('emi')/l.length, int:s('int'), pr:s('pr'), pp:s('pp'), ch:s('ch'), bal:l[l.length-1].bal};
+    const tr=document.createElement('tr'); tr.className='yr'+(ag.pp>0?' hl':''); tr.tabIndex=0; tr.innerHTML=cols.map(c=>'<td>'+c(ag,true)+'</td>').join(''); tb.appendChild(tr);
+    const kids=l.map(r=>{ const t=document.createElement('tr'); t.className='mo'; t.hidden=true; t.innerHTML=cols.map(c=>'<td>'+c(Object.assign({label:'EMI '+r.m+' · '+dateOf(start,r.m)},r),false)+'</td>').join(''); tb.appendChild(t); return t; });
+    const tg=()=>kids.forEach(k=>k.hidden=!k.hidden); tr.onclick=tg; tr.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tg(); } }; });
+}
+function chart(el,a,b,P){
+  const W=640,H=230,L=58,R=12,T=12,B=28,mx=Math.max(a.months,1), x=m=>L+(W-L-R)*m/mx, y=v=>T+(H-T-B)*(1-v/P);
+  const path=s=>[[0,P]].concat(s.rows.map(r=>[r.m,r.bal])).map((p,i)=>(i?'L':'M')+x(p[0]).toFixed(1)+' '+y(p[1]).toFixed(1)).join('');
+  let g=''; for(let k=0;k<=4;k++){ const v=P*k/4; g+=`<line class="chart-grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${short(v)}</text>`; }
+  const st=mx>120?24:12; for(let m=0;m<=mx;m+=st) g+=`<text x="${x(m)}" y="${H-8}" text-anchor="middle">${m===0?'Start':'Yr '+(m/12)}</text>`;
+  const bp=path(b), lb=b.rows.length?b.rows[b.rows.length-1].m:0;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px;display:block" role="img" aria-label="Balance left over time">${g}<path class="area-b" d="${bp}L${x(lb).toFixed(1)} ${y(0)}L${x(0)} ${y(0)}Z"/><path class="line-a" d="${path(a)}"/><path class="line-b" d="${bp}"/><circle cx="${x(lb)}" cy="${y(0)}" r="4" fill="var(--accent)"/></svg>`;
+}
+const cmpRows=(tb,rows)=>{ tb.innerHTML=rows.map(r=>'<tr><td>'+r.join('</td><td>')+'</td></tr>').join(''); };
+const bind=(ids,fn)=>ids.forEach(id=>['input','change'].forEach(ev=>$(id).addEventListener(ev,()=>{ fn(); save(); })));
+
+// ---------- 1. EMI (fixed or floating) ----------
+const aMethod=seg('a-method',()=>calcA());
+const aType=seg('a-type',()=>calcA());
+const aRC=makeList('a-rc',rcTpl,()=>calcA());
+$('a-rc-add').onclick=()=>{ aRC.add({m:13,rate:num('a-rate')+0.25}); calcA(); save(); };
+function calcA(){
+  hintAmt('a'); hintTen('a');
+  const P=num('a-amt'), rate=num('a-rate'), n=Math.max(1,Math.round(num('a-ten',1))), st=$('a-start').value, mode=$('a-mode').value;
+  const flat=aMethod()==='flat', floating=!flat && aType()==='floating';
+  $('a-type-wrap').hidden=flat; $('a-float').hidden=!floating; $('a-cmp-card').hidden=!floating;
+  $('a-rate-l').textContent= floating? 'Starting rate (%)' : 'Interest rate (% a year)';
+  $('a-type-h').textContent= floating? 'Moves with the RBI repo rate. Add the changes you expect below.' : 'The same rate for the whole loan.';
+  let r, base=null;
+  if(flat) r=flatLoan(P,rate,n);
+  else { base=simulate({P,rate,n}); r= floating? simulate({P,rate,n,rateChanges:aRC.items(),rateMode:mode}) : base; }
+  const lastRate=r.rows.length? r.rows[r.rows.length-1].rate : rate;
+  if(floating){
+    const reg=r.rows.slice(0,-1), emiAfter=reg.length? reg[reg.length-1].emi : r.firstEmi, x=r.totI-base.totI, dm=r.months-base.months;
+    if(mode==='emi'){ $('a-k1').textContent='Monthly EMI'; $('a-emi').textContent=inr(r.firstEmi); $('a-emi-s').textContent='Stays the same; '+r.months+' EMIs instead of '+base.months; }
+    else { $('a-k1').textContent='EMI after changes'; $('a-emi').textContent=inr(emiAfter); const d=emiAfter-r.firstEmi; $('a-emi-s').textContent='Starts at '+inr(r.firstEmi)+(Math.abs(d)>=1? ', '+(d>0?'+':'−')+inr(Math.abs(d))+' a month later':''); }
+    $('a-int').textContent=short(r.totI); $('a-int-s').innerHTML='<span class="'+(x>0?'neg':'pos')+'">'+(x>=0?'+':'−')+inr(Math.abs(x))+'</span> vs rate staying at '+pct(rate);
+    $('a-k4').textContent='Loan ends'; $('a-v4').textContent=dateOf(st,r.months); $('a-s4').textContent= dm===0? 'As planned' : (dm>0? yrs(dm)+' later than planned' : yrs(-dm)+' earlier than planned');
+    cmpRows($('a-cmp').tBodies[0],[
+      ['Rate', pct(rate), lastRate===rate? pct(rate) : pct(lastRate)+' at the end', ''],
+      ['First EMI', inr(base.firstEmi), inr(r.firstEmi), '–'],
+      [mode==='emi'?'EMI':'EMI after changes', inr(base.firstEmi), inr(mode==='emi'?r.firstEmi:emiAfter), mode==='emi'?'–':((emiAfter-base.firstEmi)>=0?'+':'')+inr(emiAfter-base.firstEmi)],
+      ['Number of EMIs', base.months, r.months, dm||'–'],
+      ['Total interest', inr(base.totI), inr(r.totI), '<span class="'+(x>0?'neg':'pos')+'">'+(x>=0?'+':'')+inr(x)+'</span>'],
+      ['Total repaid', inr(P+base.totI), inr(P+r.totI), (x>=0?'+':'')+inr(x)]]);
+  } else {
+    $('a-k1').textContent='Monthly EMI'; $('a-emi').textContent=inr(r.firstEmi); $('a-emi-s').textContent='Same every month for '+r.months+' months';
+    $('a-int').textContent=short(r.totI); $('a-int-s').textContent=(r.totI/P*100).toFixed(1)+'% of the loan';
+    if(flat){ $('a-k4').textContent='Same as reducing rate of'; $('a-v4').textContent=pct(r.equiv); $('a-s4').textContent='Compare this with bank rates'; }
+    else { $('a-k4').textContent='Last EMI'; $('a-v4').textContent=dateOf(st,r.months); $('a-s4').textContent='First EMI '+dateOf(st,1); }
+  }
+  $('a-tot').textContent=short(P+r.totI); $('a-tot-s').textContent='Principal + interest';
+  const t=P+r.totI; $('a-bp').style.width=(P/t*100)+'%'; $('a-bi').style.width=(r.totI/t*100)+'%'; $('a-lp').textContent=short(P); $('a-li').textContent=short(r.totI);
+  schedule($('a-table').tBodies[0],r.rows,st,[x=>x.label,x=>pct(x.rate),x=>inr(x.emi),x=>inr(x.int),x=>inr(x.pr),x=>inr(x.bal)]);
+}
+bind(['a-amt','a-rate','a-ten','a-start','a-mode'],calcA);
+
+// ---------- 3. ONE-TIME CHARGES ----------
+const cMode=seg('c-pmode',()=>calcC());
+const cOT=makeList('c-other',otTpl,()=>calcC());
+$('c-other-add').onclick=()=>{ cOT.add({name:'CIBIL report',amount:50}); calcC(); save(); };
+function calcC(){
+  hintAmt('c'); hintTen('c');
+  const P=num('c-amt'), rate=num('c-rate'), n=Math.max(1,Math.round(num('c-ten',1))), g=$('c-gst').checked?0.18:0, pm=cMode()==='pct';
+  $('c-flat-wrap').hidden=pm; $('c-pct-wrap').hidden=!pm;
+  let pf=pm? P*num('c-pp')/100 : num('c-pf'); if(pm){ const mn=num('c-pmin'), mx=num('c-pmax'); if(pf<mn) pf=mn; if(mx>0&&pf>mx) pf=mx; }
+  const w=$('c-waive').checked; if(w) pf=0; const doc=num('c-doc'), dl=$('c-dealer').checked;
+  const items=[{n:'Processing fee'+(w?' <span class="tag">waived</span>':''),b:pf,g:pf*g,to:'Bank',bank:1},{n:'Documentation charges',b:doc,g:doc*g,to:'Bank',bank:1},
+    {n:'Stamp duty',b:num('c-stamp'),g:0,to:'State government'},{n:'Franking / e-stamp fee',b:num('c-frank'),g:0,to:'Stamp vendor'},
+    {n:'RTO hypothecation (Form 34)'+(dl?' <span class="tag">in on-road price</span>':''),b:dl?0:num('c-rto'),g:0,to:'RTO'}]
+    .concat(cOT.items().map(o=>({n:esc(o.name||'Other charge'),b:o.amount||0,g:0,to:'Other'})));
+  items.forEach(i=>i.t=i.b+i.g);
+  const tot=items.reduce((a,i)=>a+i.t,0), bank=items.filter(i=>i.bank).reduce((a,i)=>a+i.t,0), gov=tot-bank, emi=pmt(P,rate,n), apr=solveRate(P-tot,emi,n);
+  $('c-up').textContent=inr(tot); $('c-up-s').textContent=(tot/P*100).toFixed(2)+'% of the loan';
+  $('c-bank').textContent=inr(bank); $('c-gov').textContent=inr(gov);
+  $('c-apr').textContent=pct(apr); $('c-apr-s').textContent='Quoted rate '+pct(rate);
+  $('c-table').tBodies[0].innerHTML=items.map(i=>`<tr><td>${i.n}</td><td>${inr(i.b)}</td><td>${i.g?inr(i.g):'–'}</td><td>${inr(i.t)}</td><td>${i.to}</td></tr>`).join('');
+  $('c-table').tFoot.innerHTML=`<tr><td>Total upfront</td><td></td><td></td><td>${inr(tot)}</td><td></td></tr>`;
+  const cl=num('c-noc')+num('c-rto2'); $('c-close').textContent= cl? 'When you finish the loan, budget another '+inr(cl)+' for the bank NOC and removing the bank’s name from your RC.' : '';
+  $('c-mean').textContent=`These charges add ${inr(tot)} to the cost of your loan, about ${inr(tot/n)} for each of your ${n} EMIs. Counting them, a loan quoted at ${pct(rate)} really costs ${pct(apr)} a year. The ${inr(gov)} for stamp duty and RTO is the same at every bank, so compare banks on the ${inr(bank)} they charge.`;
+}
+bind(['c-amt','c-rate','c-ten','c-pf','c-pp','c-pmin','c-pmax','c-waive','c-doc','c-gst','c-stamp','c-frank','c-rto','c-dealer','c-noc','c-rto2'],calcC);
+
+// ---------- 4. PART PAYMENT ----------
+function dPlan(emi, st){
+  const out=[], onE=$('d-on-emis').checked, onA=$('d-on-amt').checked, onO=$('d-on-once').checked;
+  $('d-emis-wrap').hidden=!onE; $('d-amt-wrap').hidden=!onA; $('d-once-fields').hidden=!onO;
+  $('d-opt-emis').classList.toggle('on',onE); $('d-opt-amt').classList.toggle('on',onA); $('d-opt-once').classList.toggle('on',onO);
+  if(onE){ const k=parseInt($('d-ecount').value,10)||1, s=Math.max(1,Math.round(num('d-estart',12)));
+    out.push({kind:'every',every:12/k,count:1,m:s});
+    $('d-emis-h').textContent=`Each extra EMI is ${inr(emi)}, so you pay ${inr(emi*k)} extra a year. The first one goes with your ${dateOf(st,s)} EMI.`; }
+  if(onA){ const a=num('d-xamt'), t=parseInt($('d-xtimes').value,10)||1, s=Math.max(1,Math.round(num('d-xstart',1)));
+    out.push({kind:'every',every:12/t,amount:a,m:s});
+    $('d-amt-h2').textContent=`That's ${inr(a*t)} extra a year. The first payment goes with your ${dateOf(st,s)} EMI.`; }
+  if(onO) out.push({kind:'once',amount:num('d-oamt'),m:num('d-om',1)});
+  return out;
+}
+function calcD(){
+  hintAmt('d'); hintTen('d');
+  const P=num('d-amt'), rate=num('d-rate'), n=Math.max(1,Math.round(num('d-ten',1))), st=$('d-start').value, mode=$('d-mode').value;
+  const base=simulate({P,rate,n}), p=simulate({P,rate,n,prepays:dPlan(base.firstEmi,st),prepayMode:mode,ppCharge:num('d-ppc'),gst:$('d-gst').checked});
+  const sv=base.totI-p.totI, net=sv-p.charges, cut=base.months-p.months;
+  $('d-net').textContent=inr(net); $('d-net-s').textContent= !p.totPP? 'Tick an option on the left to see a saving' : (net>=0? 'Interest saved minus charges' : 'Charges cost more than you save');
+  $('d-sv').textContent=inr(sv); $('d-sv-s').textContent=(base.totI?(sv/base.totI*100).toFixed(0):0)+'% of the original interest';
+  $('d-end').textContent=dateOf(st,p.months); $('d-end-s').textContent= cut>0? yrs(cut)+' earlier than '+dateOf(st,base.months) : 'Same end date · EMI drops to '+inr(p.lastEmi);
+  $('d-pd').textContent=inr(p.totPP); $('d-pd-s').textContent= p.charges? 'Plus '+inr(p.charges)+' in charges' : 'No charges';
+  chart($('d-chart'),base,p,P);
+  cmpRows($('d-cmp').tBodies[0],[
+    ['Number of EMIs', base.months, p.months, cut>0? cut+' fewer':'–'],
+    ['Loan ends', dateOf(st,base.months), dateOf(st,p.months), cut>0? yrs(cut)+' sooner':'–'],
+    ['EMI at the end', inr(base.firstEmi), inr(mode==='emi'?p.lastEmi:p.firstEmi), mode==='emi'? '<span class="pos">−'+inr(base.firstEmi-p.lastEmi)+'</span>':'–'],
+    ['Total interest', inr(base.totI), inr(p.totI), '<span class="pos">−'+inr(sv)+'</span>'],
+    ['Charges', '–', inr(p.charges), p.charges?'<span class="neg">+'+inr(p.charges)+'</span>':'–'],
+    ['Total paid to the bank', inr(P+base.totI), inr(P+p.totI+p.charges), '<span class="'+(net>=0?'pos':'neg')+'">'+(net>=0?'−':'+')+inr(Math.abs(net))+'</span>']]);
+  schedule($('d-table').tBodies[0],p.rows,st,[r=>r.label,r=>inr(r.emi),r=>inr(r.int),r=>inr(r.pr),r=>r.pp?inr(r.pp):'–',r=>r.ch?inr(r.ch):'–',r=>inr(r.bal)]);
+}
+bind(['d-amt','d-rate','d-ten','d-start','d-mode','d-ppc','d-gst','d-ecount','d-estart','d-xamt','d-xtimes','d-xstart','d-on-emis','d-on-amt','d-on-once','d-oamt','d-om'],calcD);
+
+// ---------- 5. FORECLOSURE ----------
+function calcF(){
+  hintAmt('f'); hintTen('f');
+  const P=num('f-amt'), rate=num('f-rate'), n=Math.max(2,Math.round(num('f-ten',2))), st=$('f-start').value, cp=num('f-c'), g=$('f-gst').checked?1.18:1;
+  let N=Math.round(num('f-m',1)); N=Math.min(Math.max(1,N),n-1);
+  $('f-m-h').textContent='Pay off in '+dateOf(st,N+1)+', right after your '+dateOf(st,N)+' EMI';
+  const base=simulate({P,rate,n}); const emi=base.firstEmi;
+  const at=k=>{ const bal=base.rows[k-1].bal, paidInt=base.rows.slice(0,k).reduce((a,r)=>a+r.int,0), avoid=base.totI-paidInt, ch=bal*cp/100*g; return {k,bal,ch,pay:bal+ch,avoid,net:avoid-ch,left:n-k}; };
+  const s=at(N);
+  $('f-pay').textContent=inr(s.pay); $('f-pay-s').textContent= s.ch? 'Balance + '+inr(s.ch)+' charge' : 'No foreclosure charge';
+  $('f-bal').textContent=inr(s.bal); $('f-bal-s').textContent='After '+N+' of '+n+' EMIs';
+  $('f-av').textContent=inr(s.avoid); $('f-av-s').textContent='On the '+s.left+' EMIs you skip';
+  $('f-net').textContent=inr(s.net); $('f-net').className='v '+(s.net>=0?'':'neg'); $('f-net-s').textContent='Interest avoided minus charge';
+  const rest=emi*s.left;
+  $('f-say').innerHTML=`If you keep paying, your remaining ${s.left} EMIs add up to <b>${inr(rest)}</b>. If you close the loan after EMI ${N} (${dateOf(st,N)}), you pay <b>${inr(s.pay)}</b> once. That saves <b>${inr(rest-s.pay)}</b>. The bank also adds interest for the days between your last EMI and the closing date, so the final figure will be a little higher. Ask for a foreclosure statement before you pay.`;
+  const ks=[]; for(let k=12;k<n;k+=12) ks.push(k); if(!ks.includes(N)) ks.push(N); ks.sort((a,b)=>a-b);
+  $('f-table').tBodies[0].innerHTML=ks.map(k=>{ const r=at(k); return `<tr${k===N?' class="hl"':''}><td>${k%12===0?'Year '+(k/12):'EMI '+k}${k===N?' <span class="tag">your pick</span>':''} <span class="hint">(${dateOf(st,k)})</span></td><td>${inr(r.bal)}</td><td>${r.ch?inr(r.ch):'–'}</td><td>${inr(r.pay)}</td><td>${inr(r.avoid)}</td><td class="${r.net>=0?'pos':'neg'}">${inr(r.net)}</td></tr>`; }).join('');
+}
+bind(['f-amt','f-rate','f-ten','f-start','f-m','f-c','f-gst'],calcF);
+
+// ---------- 6. COMPARE ----------
+const gOff=makeList('g-offers',offTpl,()=>calcG());
+$('g-add').onclick=()=>{ gOff.add({name:'Another bank',rate:8,type:'floating',fee:0,ppc:0}); calcG(); save(); };
+function calcG(){
+  hintAmt('g'); hintTen('g');
+  const P=num('g-amt'), n=Math.max(1,Math.round(num('g-ten',1))), up=num('g-up'), upm=num('g-upm',3), lump=num('g-pp'), lm=num('g-ppm'), gst=$('g-gst').checked, g=gst?1.18:1;
+  const res=gOff.items().map(o=>{ const s=simulate({P,rate:o.rate||0,n,rateChanges:o.type==='floating'&&up?[{m:upm,rate:(o.rate||0)+up}]:[],rateMode:'tenure',prepays:lump>0?[{kind:'once',amount:lump,m:lm}]:[],prepayMode:'tenure',ppCharge:o.ppc||0,gst});
+    const fee=(o.fee||0)*g; return {o,s,fee,cost:s.totI+fee+s.charges}; });
+  if(!res.length){ $('g-table').tBodies[0].innerHTML=''; $('g-say').textContent='Add an offer to compare.'; return; }
+  const min=Math.min(...res.map(r=>r.cost)), best=res.find(r=>r.cost===min);
+  $('g-table').tBodies[0].innerHTML=res.map(r=>`<tr${r===best?' class="hl"':''}><td>${esc(r.o.name)||'—'} <span class="tag">${r.o.type==='fixed'?'Fixed':'Floating'} ${pct(r.o.rate||0)}</span></td><td>${inr(r.s.firstEmi)}</td><td>${inr(r.s.totI)}</td><td>${inr(r.fee+r.s.charges)}</td><td class="${r===best?'best':''}">${inr(r.cost)}</td><td>${r===best?'<span class="best">Cheapest</span>':'+'+inr(r.cost-min)}</td></tr>`).join('');
+  $('g-say').textContent=`With these assumptions, ${best.o.name||'the first offer'} costs the least. Total cost is the interest plus fees and charges you pay on top of the ${short(P)} you borrow. Change the rate rise or the prepayment to test other cases.`;
+}
+bind(['g-amt','g-ten','g-up','g-upm','g-pp','g-ppm','g-gst'],calcG);
+
+// ---------- navigation ----------
+const VIEWS=['emi','fees','part','close','compare'];
+function go(v){
+  const home=!VIEWS.includes(v);
+  $('home').hidden=!home; $('topbar').hidden=home;
+  VIEWS.forEach(k=>$('v-'+k).hidden=k!==v);
+  document.querySelectorAll('#switch button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===v?'true':'false'));
+  try{ localStorage.setItem('emiplanner-view',home?'home':v); }catch(e){}
+  window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-go]'); if(b) go(b.dataset.go); });
+$('backbtn').onclick=()=>go('home');
+
+// ---------- save / restore ----------
+const KEY='emiplanner-v3'; let ready=false;
+function save(){ if(!ready) return; try{
+  const s={v:{},c:{},seg:{},lists:{}};
+  document.querySelectorAll('.panel input[id], .panel select[id]').forEach(i=>{ if(i.closest('.item')) return; if(i.type==='checkbox') s.c[i.id]=i.checked; else s.v[i.id]=i.value; });
+  Object.keys(segs).forEach(k=>s.seg[k]=segs[k]()); Object.keys(lists).forEach(k=>s.lists[k]=lists[k].items());
+  localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} }
+let saved=null; try{ saved=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+if(saved){
+  Object.entries(saved.v||{}).forEach(([k,v])=>{ if($(k)) $(k).value=v; });
+  Object.entries(saved.c||{}).forEach(([k,v])=>{ if($(k)) $(k).checked=v; });
+  Object.entries(saved.seg||{}).forEach(([k,v])=>{ if($(k)) setSeg(k,v); });
+  Object.entries(saved.lists||{}).forEach(([k,arr])=>{ if(lists[k]) arr.forEach(d=>lists[k].add(d)); });
+  if(!(saved.lists&&saved.lists['a-rc'])) (saved.lists&&saved.lists['b-rc']||[{m:3,rate:7.95},{m:5,rate:8.20}]).forEach(d=>aRC.add(d));
+} else {
+  aRC.add({m:3,rate:7.95}); aRC.add({m:5,rate:8.20});
+  gOff.add({name:'HDFC (pre-approved)',rate:8.15,type:'fixed',fee:0,ppc:3});
+  gOff.add({name:'UCO (direct, CIBIL 750–824)',rate:7.70,type:'floating',fee:0,ppc:0});
+  gOff.add({name:'Union Bank',rate:8.00,type:'floating',fee:0,ppc:0});
+}
+calcA(); calcC(); calcD(); calcF(); calcG();
+ready=true;
+const h=(location.hash||'').slice(1);
+let start='home'; if(VIEWS.includes(h)) start=h; if(h==='float') start='emi';
+go(start);
+})();
+</script>
+
+</body>
+</html>
