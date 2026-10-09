@@ -637,7 +637,7 @@ function chart(el,a,b,P){
 }
 const cmpRows=(tb,rows)=>{ tb.innerHTML=rows.map(r=>'<tr><td>'+r.join('</td><td>')+'</td></tr>').join(''); };
 function flashKpis(el){ const v=el&&el.closest&&el.closest('.view'), k=v&&v.querySelector('.kpis'); if(!k) return; k.classList.remove('flash'); void k.offsetWidth; k.classList.add('flash'); }
-const bind=(ids,fn)=>ids.forEach(id=>['input','change'].forEach(ev=>$(id).addEventListener(ev,()=>{ fn(); save(); if(ev==='input') flashKpis($(id)); })));
+const bind=(ids,fn)=>ids.forEach(id=>['input','change'].forEach(ev=>$(id).addEventListener(ev,()=>{ try{ fn(); }catch(e){ console.error(e); } save(); if(ev==='input') flashKpis($(id)); })));
 
 // ---------- 1. EMI (fixed or floating) ----------
 const aMethod=seg('a-method',()=>calcA());
@@ -699,14 +699,14 @@ function calcC(){
     {n:'RTO hypothecation (Form 34)'+(dl?' <span class="tag">in on-road price</span>':''),b:dl?0:num('c-rto'),g:0,to:'RTO'}]
     .concat(cOT.items().map(o=>({n:esc(o.name||'Other charge'),b:o.amount||0,g:0,to:'Other'})));
   items.forEach(i=>i.t=i.b+i.g);
-  const tot=items.reduce((a,i)=>a+i.t,0), bank=items.filter(i=>i.bank).reduce((a,i)=>a+i.t,0), gov=tot-bank, emi=pmt(P,rate,n), apr=solveRate(P-tot,emi,n);
+  const tot=items.reduce((a,i)=>a+i.t,0), bank=items.filter(i=>i.bank).reduce((a,i)=>a+i.t,0), gov=tot-bank, emi=pmt(P,rate,n), apr=P-tot>0? solveRate(P-tot,emi,n) : NaN;
   $('c-up').textContent=inr(tot); $('c-up-s').textContent=(tot/P*100).toFixed(2)+'% of the loan';
   $('c-bank').textContent=inr(bank); $('c-gov').textContent=inr(gov);
-  $('c-apr').textContent=pct(apr); $('c-apr-s').textContent='Quoted rate '+pct(rate);
+  $('c-apr').textContent=isFinite(apr)?pct(apr):'—'; $('c-apr-s').textContent='Quoted rate '+pct(rate);
   $('c-table').tBodies[0].innerHTML=items.map(i=>`<tr><td>${i.n}</td><td>${inr(i.b)}</td><td>${i.g?inr(i.g):'–'}</td><td>${inr(i.t)}</td><td>${i.to}</td></tr>`).join('');
   $('c-table').tFoot.innerHTML=`<tr><td>Total upfront</td><td></td><td></td><td>${inr(tot)}</td><td></td></tr>`;
   const cl=num('c-noc')+num('c-rto2'); $('c-close').textContent= cl? 'When you finish the loan, budget another '+inr(cl)+' for the bank NOC and removing the bank’s name from your RC.' : '';
-  $('c-mean').textContent=`These charges add ${inr(tot)} to the cost of your loan, about ${inr(tot/n)} for each of your ${n} EMIs. Counting them, a loan quoted at ${pct(rate)} really costs ${pct(apr)} a year. The ${inr(gov)} for stamp duty and RTO is the same at every bank, so compare banks on the ${inr(bank)} they charge.`;
+  $('c-mean').textContent=`These charges add ${inr(tot)} to the cost of your loan, about ${inr(tot/n)} for each of your ${n} EMIs. ${isFinite(apr)?`Counting them, a loan quoted at ${pct(rate)} really costs ${pct(apr)} a year.`:''} The ${inr(gov)} for stamp duty and RTO is the same at every bank, so compare banks on the ${inr(bank)} they charge.`;
 }
 bind(['c-amt','c-rate','c-ten','c-pf','c-pp','c-pmin','c-pmax','c-waive','c-doc','c-gst','c-stamp','c-frank','c-rto','c-dealer','c-noc','c-rto2'],calcC);
 
@@ -731,7 +731,7 @@ function calcD(){
   const sv=base.totI-p.totI, net=sv-p.charges, cut=base.months-p.months;
   $('d-net').textContent=inr(net); $('d-net-s').textContent= !p.totPP? 'Tick an option on the left to see a saving' : (net>=0? 'Interest saved minus charges' : 'Charges cost more than you save');
   $('d-sv').textContent=inr(sv); $('d-sv-s').textContent=(base.totI?(sv/base.totI*100).toFixed(0):0)+'% of the original interest';
-  $('d-end').textContent=dateOf(st,p.months); $('d-end-s').textContent= cut>0? yrs(cut)+' earlier than '+dateOf(st,base.months) : 'Same end date · EMI drops to '+inr(p.lastEmi);
+  $('d-end').textContent=dateOf(st,p.months); $('d-end-s').textContent= cut>0? yrs(cut)+' earlier than '+dateOf(st,base.months) : (mode==='emi'? 'Same end date · EMI drops to '+inr(p.lastEmi) : 'Same end date as before');
   $('d-pd').textContent=inr(p.totPP); $('d-pd-s').textContent= p.charges? 'Plus '+inr(p.charges)+' in charges' : 'No charges';
   chart($('d-chart'),base,p,P);
   cmpRows($('d-cmp').tBodies[0],[
@@ -752,15 +752,17 @@ function calcF(){
   let N=Math.round(num('f-m',1)); N=Math.min(Math.max(1,N),n-1);
   $('f-m-h').textContent='Pay off in '+dateOf(st,N+1)+', right after your '+dateOf(st,N)+' EMI';
   const base=simulate({P,rate,n}); const emi=base.firstEmi;
-  const at=k=>{ const bal=base.rows[k-1].bal, paidInt=base.rows.slice(0,k).reduce((a,r)=>a+r.int,0), avoid=base.totI-paidInt, ch=bal*cp/100*g; return {k,bal,ch,pay:bal+ch,avoid,net:avoid-ch,left:n-k}; };
+  if(base.rows.length<2){ ['f-pay','f-bal','f-av','f-net'].forEach(i=>$(i).textContent='—'); ['f-pay-s','f-bal-s','f-av-s','f-net-s'].forEach(i=>$(i).textContent=''); $('f-say').textContent='Enter a loan amount and a tenure of at least 2 months.'; $('f-table').tBodies[0].innerHTML=''; return; }
+  N=Math.min(N,base.rows.length-1);
+  const at=k=>{ const bal=base.rows[k-1].bal, paidInt=base.rows.slice(0,k).reduce((a,r)=>a+r.int,0), avoid=base.totI-paidInt, ch=bal*cp/100*g; return {k,bal,ch,pay:bal+ch,avoid,net:avoid-ch,left:base.rows.length-k}; };
   const s=at(N);
   $('f-pay').textContent=inr(s.pay); $('f-pay-s').textContent= s.ch? 'Balance + '+inr(s.ch)+' charge' : 'No foreclosure charge';
   $('f-bal').textContent=inr(s.bal); $('f-bal-s').textContent='After '+N+' of '+n+' EMIs';
   $('f-av').textContent=inr(s.avoid); $('f-av-s').textContent='On the '+s.left+' EMIs you skip';
   $('f-net').textContent=inr(s.net); $('f-net').className='v '+(s.net>=0?'':'neg'); $('f-net-s').textContent='Interest avoided minus charge';
-  const rest=emi*s.left;
+  const rest=base.rows.slice(N).reduce((a,r)=>a+r.emi,0);
   $('f-say').innerHTML=`If you keep paying, your remaining ${s.left} EMIs add up to <b>${inr(rest)}</b>. If you close the loan after EMI ${N} (${dateOf(st,N)}), you pay <b>${inr(s.pay)}</b> once. That saves <b>${inr(rest-s.pay)}</b>. The bank also adds interest for the days between your last EMI and the closing date, so the final figure will be a little higher. Ask for a foreclosure statement before you pay.`;
-  const ks=[]; for(let k=12;k<n;k+=12) ks.push(k); if(!ks.includes(N)) ks.push(N); ks.sort((a,b)=>a-b);
+  const ks=[]; for(let k=12;k<base.rows.length;k+=12) ks.push(k); if(!ks.includes(N)) ks.push(N); ks.sort((a,b)=>a-b);
   $('f-table').tBodies[0].innerHTML=ks.map(k=>{ const r=at(k); return `<tr${k===N?' class="hl"':''}><td>${k%12===0?'Year '+(k/12):'EMI '+k}${k===N?' <span class="tag">your pick</span>':''} <span class="hint">(${dateOf(st,k)})</span></td><td>${inr(r.bal)}</td><td>${r.ch?inr(r.ch):'–'}</td><td>${inr(r.pay)}</td><td>${inr(r.avoid)}</td><td class="${r.net>=0?'pos':'neg'}">${inr(r.net)}</td></tr>`; }).join('');
 }
 bind(['f-amt','f-rate','f-ten','f-start','f-m','f-c','f-gst'],calcF);
