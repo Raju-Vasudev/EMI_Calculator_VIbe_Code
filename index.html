@@ -238,6 +238,29 @@ tr.mo td{background:transparent}
 .chart-grid{stroke-dasharray:2 5}
 @media (prefers-reduced-motion:no-preference){ .tool:hover{transform:translateY(-3px)} .view:not([hidden]){animation:viewin .35s ease-out} }
 #g-pick{font-size:1.3rem!important;line-height:1.2}
+
+/* foldable cards and the pre-signing checkpoint */
+.fold>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 10px}
+.fold>summary .oneline{grid-column:1 / -1;grid-row:2;font-size:.88rem;color:var(--muted);line-height:1.45}
+.fold[open]>summary .oneline{display:none}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary h4{margin:0}
+.fold>summary::after{content:"Less \25B4";font-size:.8rem;font-weight:600;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);border-radius:99px;padding:2px 11px;background:color-mix(in srgb,var(--accent) 8%,transparent);flex:none}
+.fold:not([open])>summary::after{content:"More \25BE"}
+.fold[open]>summary{margin-bottom:12px}
+.fold>summary:hover::after{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.ckhead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.progress{flex:1;height:8px;border-radius:99px;background:var(--field);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.progress span{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px var(--glow);transition:width .25s}
+.ckgroup{font-family:var(--display);font-size:.98rem;font-weight:600;margin:18px 0 8px}
+.cklist{display:flex;flex-direction:column;gap:8px}
+.ck{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:var(--field);cursor:pointer;transition:border-color .15s,background .15s}
+.ck:hover{border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+.ck input{flex:none;width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+.ck b{display:block;font-size:.93rem;font-weight:600}
+.ck small{display:block;color:var(--muted);font-size:.83rem;margin-top:2px;line-height:1.45}
+.ck:has(input:checked){border-color:color-mix(in srgb,var(--good) 55%,transparent);background:color-mix(in srgb,var(--good) 8%,var(--field))}
+.ck:has(input:checked) b{color:var(--good)}
 @keyframes viewin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
 </head>
@@ -316,8 +339,8 @@ tr.mo td{background:transparent}
         <div class="kpi"><div class="k">Total you repay</div><div class="v" id="a-tot">–</div><div class="s" id="a-tot-s"></div></div>
         <div class="kpi"><div class="k" id="a-k4">Last EMI</div><div class="v" id="a-v4">–</div><div class="s" id="a-s4"></div></div>
       </div>
-      <div class="card" id="a-cmp-card" hidden><h4>If the rate never changes vs with your changes</h4>
-        <div class="tablewrap free"><table id="a-cmp"><thead><tr><th></th><th>Rate stays</th><th>With changes</th><th>Difference</th></tr></thead><tbody></tbody></table></div></div>
+      <details class="card fold" id="a-cmp-card" open hidden><summary><h4>If the rate never changes vs with your changes</h4></summary>
+        <div class="tablewrap free"><table id="a-cmp"><thead><tr><th></th><th>Rate stays</th><th>With changes</th><th>Difference</th></tr></thead><tbody></tbody></table></div></details>
       <div class="card"><h4>Principal vs interest</h4>
         <div class="split"><span id="a-bp" style="background:var(--accent)"></span><span id="a-bi" style="background:var(--interest)"></span></div>
         <div class="legend"><span><i style="background:var(--accent)"></i>Principal <b id="a-lp"></b></span><span><i style="background:var(--interest)"></i>Interest <b id="a-li"></b></span></div>
@@ -637,22 +660,52 @@ tr.mo td{background:transparent}
       <label class="check" style="margin-top:8px"><input type="checkbox" id="g-gst" checked> Add 18% GST to fees and charges</label>
     </div>
     <div class="results">
+      <details class="card fold" id="g-check"><summary><h4>Before you sign: checkpoint</h4><span class="oneline" id="ck-one"></span></summary>
+        <div class="ckhead"><div class="progress" aria-hidden="true"><span id="ck-bar"></span></div><span class="hint" id="ck-count"></span></div>
+        <div class="ckgroup">What you will really pay</div><div class="cklist">
+          <label class="ck"><input type="checkbox" data-ck="1"><span><b>Ask for the Key Fact Statement</b><small>Banks must give you a one-page summary of the loan before you sign, with the all-in yearly cost (APR) and every charge. Compare the APR, not only the rate.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="2"><span><b>Add up every charge</b><small>Processing fee, documentation charges, GST on both, stamp duty, RTO Form 34 and insurance. The One-time charges calculator does the sum.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="3"><span><b>Get the prepayment and closure rules in writing</b><small>Floating-rate loans to individuals carry no such charge from 1 January 2026. Fixed-rate loans can still charge, and some set a minimum part-payment amount.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="4"><span><b>Ask exactly what the bank funds</b><small>Whether insurance, registration and accessories are inside the loan, and what down payment the bank expects.</small></span></label>
+        </div>
+        <div class="ckgroup">How the rate works</div><div class="cklist">
+          <label class="ck"><input type="checkbox" data-ck="5"><span><b>For floating, ask for the benchmark, the spread and the reset gap</b><small>Most are linked to the repo rate. A reset changes either your EMI or your tenure, so ask which one the bank uses.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="6"><span><b>Ask if you can switch to fixed, or choose EMI or tenure</b><small>RBI expects banks to offer these choices on floating loans and to tell you each time the rate changes. Ask what switching costs.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="7"><span><b>Match the rate to the sanction letter and the agreement</b><small>Phone quotes and pre-approved offers are not binding. Rate, tenure and fees must be the same in the sanction letter and the loan agreement.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="8"><span><b>Find out what the best rate depends on</b><small>Some banks give their lowest rate only if you apply directly, hold a salary account or have a CIBIL score above a limit. Confirm the rate you will actually get.</small></span></label>
+        </div>
+        <div class="ckgroup">Can you carry it comfortably</div><div class="cklist">
+          <label class="ck"><input type="checkbox" data-ck="9"><span><b>Keep all EMIs within a safe share of income</b><small>A common guide is all EMIs together under 40% of monthly take-home pay, with the car EMI near 15% or less.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="10"><span><b>Keep an emergency fund</b><small>About 3 to 6 months of expenses plus EMIs, kept separate from the money you plan to prepay or invest.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="11"><span><b>Check the loan will not outlast the car's value</b><small>A long tenure with a small down payment can leave you owing more than the car is worth in the first years.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="12"><span><b>Check your CIBIL report and limit applications</b><small>Every application leaves a hard enquiry on your report. Compare offers first, then apply to one or two banks.</small></span></label>
+        </div>
+        <div class="ckgroup">Paperwork and payment</div><div class="cklist">
+          <label class="ck"><input type="checkbox" data-ck="13"><span><b>Read the penal charges</b><small>Late payment, EMI bounce, changing the payment method, duplicate statements and part-payment fees.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="14"><span><b>Remember insurance is your choice</b><small>The bank can ask for comprehensive cover on the car, but you pick the insurer. Loan-protection or credit-life cover is optional, even if it is bundled in.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="15"><span><b>Set up autopay and keep a cushion</b><small>A bounced EMI costs a fee and lowers your CIBIL score. Keep one extra EMI in the account.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="16"><span><b>Ask for the repayment schedule and the first EMI date</b><small>Also ask whether you pay interest for the days before the first EMI.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="17"><span><b>Know how the bank's claim on the car ends</b><small>The bank's name goes on your RC (hypothecation, Form 34). When you finish, collect the closure letter, Form 35 and NOC, and have the name removed.</small></span></label>
+          <label class="ck"><input type="checkbox" data-ck="18"><span><b>Pay fees only to the bank or the dealer's official account</b><small>Never to an agent's personal account. Keep every receipt. A dealer discount tied to one lender can change the rate you get.</small></span></label>
+        </div>
+        <p class="say" id="ck-done" hidden style="margin-top:12px">You have been through every checkpoint. Keep the sanction letter, the agreement and the Key Fact Statement together for your records.</p>
+        <button class="add" type="button" id="ck-clear" style="margin-top:12px">Clear all ticks</button></details>
       <div class="kpis">
         <div class="kpi hero"><div class="k">Best for you</div><div class="v" id="g-pick">–</div><div class="s" id="g-pick-s"></div></div>
         <div class="kpi"><div class="k" id="g-k2">Margin</div><div class="v" id="g-v2">–</div><div class="s" id="g-s2"></div></div>
         <div class="kpi"><div class="k">Charges in your plan</div><div class="v" id="g-v3">–</div><div class="s" id="g-s3"></div></div>
         <div class="kpi"><div class="k">Fixed wins if rates rise</div><div class="v" id="g-be">–</div><div class="s" id="g-be-s"></div></div>
       </div>
-      <div class="card"><h4>Our recommendation</h4><p class="say" id="g-say"></p></div>
-      <div class="card"><h4>Offers <span class="example">Example</span></h4>
+      <details class="card fold" id="g-rec"><summary><h4>Our recommendation</h4><span class="oneline" id="g-one"></span></summary><p class="say" id="g-say"></p></details>
+      <details class="card fold" id="g-offcard" open><summary><h4>Offers <span class="example">Example</span></h4><span class="oneline" id="g-off-one"></span></summary>
         <p class="note" style="margin-bottom:10px">Rates from our chat for CIBIL 790. Check the charges in each sanction letter. In the fee box, enter each bank's processing plus documentation charges. Stamp duty and RTO are the same at every bank, so leave them out.</p>
         <div class="list" id="g-offers"></div>
-        <button class="add" type="button" id="g-add" style="margin-top:8px">+ Add an offer</button></div>
-      <div class="card"><h4>Cost of each offer, your plan</h4>
-        <div class="tablewrap free"><table id="g-table"><thead><tr><th>Bank</th><th>EMI</th><th>Interest</th><th>Fees</th><th>Charges</th><th>Total cost</th><th>vs best</th></tr></thead><tbody></tbody></table></div></div>
-      <div class="card"><h4>What if you are wrong about rates?</h4>
+        <button class="add" type="button" id="g-add" style="margin-top:8px">+ Add an offer</button></details>
+      <details class="card fold" id="g-costcard" open><summary><h4>Cost of each offer, your plan</h4><span class="oneline" id="g-cost-one"></span></summary>
+        <div class="tablewrap free"><table id="g-table"><thead><tr><th>Bank</th><th>EMI</th><th>Interest</th><th>Fees</th><th>Charges</th><th>Total cost</th><th>vs best</th></tr></thead><tbody></tbody></table></div></details>
+      <details class="card fold" id="g-whatcard" open><summary><h4>What if you are wrong about rates?</h4><span class="oneline" id="g-what-one"></span></summary>
         <p class="note" style="margin-bottom:10px">Total cost of each offer if floating rates change by this much from EMI <span id="g-upm2"></span>. The cheapest in each column is in bold. Fixed offers never move.</p>
-        <div class="tablewrap free"><table id="g-what"><thead></thead><tbody></tbody></table></div></div>
+        <div class="tablewrap free"><table id="g-what"><thead></thead><tbody></tbody></table></div></details>
     </div>
   </div>
 </section>
@@ -1016,7 +1069,7 @@ function calcG(){
     : plan==='part' ? 'Charges on part-payments are counted for each offer.' : 'The closure charge is counted for each offer.';
   $('g-view-h').textContent= view==='flat' ? 'Floating rates stay where they are today.' : view==='rise' ? 'Floating rates go up by this much from the EMI you choose. Fixed offers are not affected.' : 'Floating rates go down by this much (a negative number) from the EMI you choose. Fixed offers are not affected.';
   $('g-pri-h').textContent= pri==='safe' ? 'Picks the cheapest fixed-rate offer, so your EMI never changes.' : 'Picks the offer with the lowest total cost for your answers.';
-  if(!offers.length){ ['g-pick','g-v2','g-v3','g-be'].forEach(i=>$(i).textContent='–'); ['g-pick-s','g-s2','g-s3','g-be-s'].forEach(i=>$(i).textContent=''); $('g-table').tBodies[0].innerHTML=''; $('g-what').tBodies[0].innerHTML=''; $('g-what').tHead.innerHTML=''; $('g-say').textContent='Add an offer to compare.'; return; }
+  if(!offers.length){ ['g-one','g-off-one','g-cost-one','g-what-one'].forEach(i=>$(i).textContent=''); ['g-pick','g-v2','g-v3','g-be'].forEach(i=>$(i).textContent='–'); ['g-pick-s','g-s2','g-s3','g-be-s'].forEach(i=>$(i).textContent=''); $('g-table').tBodies[0].innerHTML=''; $('g-what').tBodies[0].innerHTML=''; $('g-what').tHead.innerHTML=''; $('g-say').textContent='Add an offer to compare.'; return; }
   const res=offers.map(o=>cost(o,up)).sort((x,y)=>x.cost-y.cost), best=res[0];
   const fixedR=res.filter(r=>r.o.type==='fixed'), floatR=res.filter(r=>r.o.type!=='fixed');
   const pick= pri==='safe' && fixedR.length ? fixedR[0] : best;
@@ -1065,6 +1118,10 @@ function calcG(){
     const fl=floatR[0]; if(fl){ const flat=cost(fl.o,0); const ownFlat=cost(pick.o,0); if(flat.cost<ownFlat.cost) parts.push(`<b>Trade-off:</b> your rate is locked, so a rise cannot hurt you, but if rates just stay put, ${esc(fl.name)} would cost ${inr(ownFlat.cost-flat.cost)} less.`); }
   }
   $('g-say').innerHTML=parts.join('<br><br>');
+  $('g-one').textContent=`${pick.name}${pri==='safe'&&pick!==best?' (fixed)':''} is the pick at ${inr(pick.cost)} total cost`+(pick!==best? `, ${inr(pick.cost-best.cost)} more than the cheapest.` : nxt? `, ${inr(nxt.cost-pick.cost)} less than ${nxt.name}.` : '.');
+  $('g-off-one').textContent=offers.length+(offers.length>1?' offers: ':' offer: ')+offers.map(o=>`${o.name||'Unnamed'} ${pct(o.rate||0)} ${o.type==='fixed'?'fixed':'floating'}`).join('; ');
+  $('g-cost-one').textContent=`Cheapest: ${best.name} at ${inr(best.cost)}`+(res.length>1? `; dearest: ${res[res.length-1].name} at ${inr(res[res.length-1].cost)}.` : '.');
+  $('g-what-one').textContent= fixedR.length&&floatR.length&&beNum!==null? (beNum===0? 'Fixed is already cheaper than every floating offer.' : isFinite(beNum)? `Fixed beats floating if rates rise by more than ${pct(beNum)}.` : 'Floating stays cheaper unless rates rise by more than 10%.') : 'Costs if rates fall or rise from EMI '+upm+'.';
   // main table
   $('g-table').tBodies[0].innerHTML=res.map(r=>{ const fl=r.o.type!=='fixed', rw=r.s.rows, after=fl&&up&&rw.length? rw[Math.min(upm,rw.length)-1].emi : null, isPick=r===pick;
     const free=plan!=='none'&&r.chg===0&&rbi&&fl? 'None (floating)' : inr(r.chg);
@@ -1079,6 +1136,16 @@ bind(['g-amt','g-ten','g-up','g-upm','g-pp','g-ppm','g-rep','g-cm','g-rbi','g-gs
 // ---------- formula panels ----------
 document.addEventListener('click',e=>{ const b=e.target.closest('.fxbtn'); if(!b) return; const id=b.dataset.fx, card=$('fx-'+id); if(!card) return;
   card.hidden=!card.hidden; document.querySelectorAll('.fxbtn[aria-controls="fx-'+id+'"]').forEach(x=>{ x.setAttribute('aria-expanded',card.hidden?'false':'true'); x.textContent=card.hidden?'ƒx How it\u2019s calculated':'ƒx Hide formulas'; }); });
+
+// ---------- folds and checkpoint ----------
+const FKEY='emiplanner-fold', CKEY='emiplanner-ck'; let fstate={}, ckstate={};
+try{ fstate=JSON.parse(localStorage.getItem(FKEY)||'{}')||{}; ckstate=JSON.parse(localStorage.getItem(CKEY)||'{}')||{}; }catch(e){}
+document.querySelectorAll('details.fold[id]').forEach(d=>{ if(typeof fstate[d.id]==='boolean') d.open=fstate[d.id]; d.addEventListener('toggle',()=>{ fstate[d.id]=d.open; try{ localStorage.setItem(FKEY,JSON.stringify(fstate)); }catch(e){} }); });
+const ckBoxes=[...document.querySelectorAll('input[data-ck]')];
+function ckRefresh(){ const done=ckBoxes.filter(b=>b.checked).length, tot=ckBoxes.length; $('ck-bar').style.width=(tot?done/tot*100:0)+'%'; $('ck-count').textContent=done+' of '+tot+' checked'; $('ck-one').textContent=done+' of '+tot+' checked'+(done<tot?'. Open to go through them before you sign.':'. All done.'); $('ck-done').hidden=done<tot; }
+ckBoxes.forEach(b=>{ b.checked=!!ckstate[b.dataset.ck]; b.addEventListener('change',()=>{ ckstate[b.dataset.ck]=b.checked; try{ localStorage.setItem(CKEY,JSON.stringify(ckstate)); }catch(e){} ckRefresh(); }); });
+$('ck-clear').onclick=()=>{ ckBoxes.forEach(b=>b.checked=false); ckstate={}; try{ localStorage.setItem(CKEY,'{}'); }catch(e){} ckRefresh(); };
+ckRefresh();
 
 // ---------- navigation ----------
 const VIEWS=['emi','fees','part','close','invest','compare'];
