@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600&display=swap">
 <style>
 /* Layout: home screen of six calculator cards; each calculator is its own view with a back link,
-   a quick switcher, a how-to strip , then inputs (left) and results (right), stacking on phones */
+   a quick switcher, a how-to strip, then inputs (left) and results (right), stacking on phones */
 :root{
   --paper:#f4f6f3; --card:#ffffff; --ink:#15233b; --muted:#5d6878; --line:#dce2da;
   --soft:#e7efe9; --accent:#0d6e66; --accent-ink:#ffffff; --interest:#b25a0a; --good:#177245; --warn:#a33a1f;
@@ -26,6 +26,21 @@
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.taxbox{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--paper)}
+.taxbox summary{cursor:pointer;font-weight:600;font-size:.9rem;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;list-style:none}
+.taxbox summary::-webkit-details-marker{display:none}
+.taxbox summary::after{content:"Hide \25B4";margin-left:auto;font-size:.8rem;font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:1px 9px}
+.taxbox:not([open]) summary::after{content:"Show \25BE"}
+.vh-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.fxbtn{font:600 .82rem var(--body);color:var(--accent);background:var(--card);border:1px solid var(--accent);border-radius:99px;padding:5px 12px;cursor:pointer}
+.fxbtn[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink)}
+.fx{margin-bottom:16px;border-color:var(--accent)}
+.fx h4{display:flex;justify-content:space-between;gap:10px}
+.fx ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:10px}
+.fx li{max-width:75ch}
+.fx code,.fx .eq{font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;font-size:.86rem;background:var(--soft);border-radius:5px;padding:1px 6px}
+.fx .eq{display:block;padding:8px 10px;margin-top:4px;overflow-x:auto;white-space:nowrap}
+.fx .ex{margin-top:12px;padding:10px 12px;background:var(--paper);border:1px dashed var(--line);border-radius:8px;font-size:.88rem}
 .opt{border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
 .opt.on{border-color:var(--accent);background:var(--soft)}
 .opt > .check{font-weight:600;font-size:.95rem}
@@ -43,7 +58,8 @@ button,input,select{font-family:inherit}
 @media (max-width:560px){.cards{grid-template-columns:minmax(0,1fr)}}
 .tool{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;color:var(--ink);transition:border-color .15s, transform .15s}
 .tool:hover{border-color:var(--accent)}
-@media (prefers-reduced-motion:no-preference){.tool:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion:no-preference){.tool:hover{transform:translateY(-2px)} .kpis.flash .kpi .v{animation:kflash .5s ease-out}}
+@keyframes kflash{from{opacity:.3}to{opacity:1}}
 .tool .ic{width:40px;height:40px;border-radius:10px;background:var(--soft);color:var(--accent);display:grid;place-items:center}
 .tool .ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tool b{font-family:var(--display);font-size:1.12rem;font-weight:600}
@@ -133,15 +149,16 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 <!-- ================= HOME ================= -->
 <section id="home" class="home">
   <h1>EMI &amp; Prepayment Planner</h1>
-  <p>Five separate calculators for a car or home loan. Pick the question you want answered. Each one opens with example figures from the car loan offers we discussed, which you can change.</p>
+  <p>Six calculators for a car or home loan. Pick the question you want answered. Each one opens with example figures from the car loan offers we discussed, which you can change.</p>
   <div class="cards">
     <button class="tool" data-go="emi" type="button"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><b>EMI calculator</b><span>What will my EMI be, and how much interest will I pay? Fixed or floating rate.</span><em>Open →</em></button>
     <button class="tool" data-go="fees" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><b>One-time charges</b><span>What do I pay upfront: processing fee, stamp duty, RTO?</span><em>Open →</em></button>
     <button class="tool" data-go="part" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></div><b>Part payment</b><span>How much do I save by paying extra: a lump sum or extra EMIs?</span><em>Open →</em></button>
     <button class="tool" data-go="close" type="button"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div><b>Foreclosure</b><span>How much do I need to close my loan fully, and what do I save?</span><em>Open →</em></button>
+    <button class="tool" data-go="invest" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 6a3 3 0 006 0zM19 7l-3 6a3 3 0 006 0z"/></svg></div><b>Prepay or invest?</b><span>Should I put spare money into the loan, or invest it instead?</span><em>Open →</em></button>
     <button class="tool" data-go="compare" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 20V11M12 20V4M18 20v-7"/></svg></div><b>Compare banks</b><span>Which offer costs least overall: fixed vs floating, fees, charges?</span><em>Open →</em></button>
   </div>
-  <p class="foot">Everything you enter stays in this browser only. Reducing-balance interest, calculated monthly, as Indian banks use.</p>
+  <p class="foot">Results update instantly as you type; there is no calculate button. Everything you enter stays in this browser only. Reducing-balance interest, calculated monthly, as Indian banks use.</p>
 </section>
 
 <!-- ================= CALC CHROME ================= -->
@@ -152,14 +169,23 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
     <button type="button" data-go="fees">One-time charges</button>
     <button type="button" data-go="part">Part payment</button>
     <button type="button" data-go="close">Foreclosure</button>
+    <button type="button" data-go="invest">Prepay or invest</button>
     <button type="button" data-go="compare">Compare banks</button>
   </div>
 </nav>
 
 <!-- ================= 1. EMI (fixed or floating) ================= -->
 <section class="view" id="v-emi" hidden>
-  <div class="viewhead"><span class="chip">EMI calculator</span><h2>What will my EMI be?</h2>
+  <div class="viewhead"><div class="vh-top"><span class="chip">EMI calculator</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-emi" data-fx="emi">ƒx How it's calculated</button></div><h2>What will my EMI be?</h2>
     <ol class="steps"><li>Enter loan amount, rate and tenure</li><li>Choose fixed or floating</li><li>For floating, add the rate changes you expect</li><li>Read your EMI, interest and schedule</li></ol></div>
+  <div class="card fx" id="fx-emi" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="emi">Close</button></h4><ol>
+<li><b>Monthly rate</b> <span class="eq">r = yearly rate ÷ 12 ÷ 100</span></li>
+<li><b>EMI</b> (reducing balance, what banks use) <span class="eq">EMI = P × r × (1 + r)ⁿ ÷ ((1 + r)ⁿ − 1)</span> P = loan amount, n = number of EMIs.</li>
+<li><b>Each month</b> <span class="eq">Interest = balance × r · Principal = EMI − interest · New balance = balance − principal</span> Total interest is the sum of every month's interest.</li>
+<li><b>Flat rate</b> <span class="eq">Total interest = P × yearly rate × years · EMI = (P + total interest) ÷ n</span> The "same as reducing rate" figure is the r that gives this EMI in formula 2, found by trial.</li>
+<li><b>Floating rate change at EMI k</b>. If the EMI changes: <span class="eq">New EMI = formula 2 with P = balance left, n = EMIs left</span> If the EMI stays: <span class="eq">EMIs left = −log(1 − balance × r ÷ EMI) ÷ log(1 + r)</span></li>
+</ol>
+<div class="ex" id="a-fx-ex"></div></div>
   <div class="grid">
     <div class="panel">
       <h3>Your loan</h3>
@@ -206,8 +232,14 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 
 <!-- ================= 3. ONE-TIME CHARGES ================= -->
 <section class="view" id="v-fees" hidden>
-  <div class="viewhead"><span class="chip">One-time charges</span><h2>What do I pay before the first EMI?</h2>
+  <div class="viewhead"><div class="vh-top"><span class="chip">One-time charges</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-fees" data-fx="fees">ƒx How it's calculated</button></div><h2>What do I pay before the first EMI?</h2>
     <ol class="steps"><li>Enter your loan</li><li>Fill in each charge the bank quotes</li><li>See the total and the true yearly rate</li></ol></div>
+  <div class="card fx" id="fx-fees" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="fees">Close</button></h4><ol>
+<li><b>Processing fee</b> <span class="eq">Fixed: the amount · Percent: loan × % (then raised to the minimum or cut to the maximum)</span></li>
+<li><b>GST</b> <span class="eq">GST = 18% × (processing fee + documentation charges)</span> Stamp duty, franking and RTO fees carry no GST.</li>
+<li><b>Total upfront</b> <span class="eq">Total = processing + documentation + GST + stamp duty + franking + RTO + other charges</span></li>
+<li><b>True yearly rate</b>: you receive the loan minus the charges, but pay the full EMI. It is the rate R where <span class="eq">EMI formula(P − total charges, R, n) = your actual EMI</span> found by trial. This is how banks work out the APR on the Key Facts Statement.</li>
+</ol></div>
   <div class="grid">
     <div class="panel">
       <h3>Your loan</h3>
@@ -264,8 +296,15 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 
 <!-- ================= 4. PART PAYMENT ================= -->
 <section class="view" id="v-part" hidden>
-  <div class="viewhead"><span class="chip">Part payment</span><h2>How much do I save by paying extra?</h2>
+  <div class="viewhead"><div class="vh-top"><span class="chip">Part payment</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-part" data-fx="part">ƒx How it's calculated</button></div><h2>How much do I save by paying extra?</h2>
     <ol class="steps"><li>Enter your loan</li><li>Choose extra EMIs, a fixed amount, or a one-time sum</li><li>Choose shorter tenure or lower EMI</li><li>See the saving</li></ol></div>
+  <div class="card fx" id="fx-part" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="part">Close</button></h4><ol>
+<li><b>Normal schedule</b> as in the EMI calculator: <span class="eq">Interest = balance × r · Principal = EMI − interest</span></li>
+<li><b>On an extra-payment month</b> <span class="eq">New balance = balance − extra amount</span> An extra EMI counts as the current EMI amount. A fixed amount "3 times a year" is paid every 4 months.</li>
+<li><b>Keep EMI, finish sooner</b> <span class="eq">EMIs left = −log(1 − balance × r ÷ EMI) ÷ log(1 + r)</span> <b>Keep tenure, lower EMI</b> <span class="eq">New EMI = EMI formula(balance, r, EMIs left)</span></li>
+<li><b>Charges</b> <span class="eq">Charge = extra amount × charge % × 1.18 (if GST is ticked)</span></li>
+<li><b>Saving</b> <span class="eq">Interest saved = interest without extras − interest with extras · Net saving = interest saved − charges</span></li>
+</ol></div>
   <div class="grid">
     <div class="panel">
       <h3>Your loan</h3>
@@ -332,8 +371,15 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 
 <!-- ================= 5. FORECLOSURE ================= -->
 <section class="view" id="v-close" hidden>
-  <div class="viewhead"><span class="chip">Foreclosure</span><h2>How much to close my loan fully?</h2>
+  <div class="viewhead"><div class="vh-top"><span class="chip">Foreclosure</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-close" data-fx="close">ƒx How it's calculated</button></div><h2>How much to close my loan fully?</h2>
     <ol class="steps"><li>Enter your loan</li><li>Pick when you want to close it</li><li>Add the bank's foreclosure charge, if any</li><li>See the amount and the saving</li></ol></div>
+  <div class="card fx" id="fx-close" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="close">Close</button></h4><ol>
+<li><b>Balance after EMI k</b> (read from the schedule, same as) <span class="eq">B = P × (1 + r)ᵏ − EMI × ((1 + r)ᵏ − 1) ÷ r</span></li>
+<li><b>Foreclosure charge</b> <span class="eq">Charge = B × charge % × 1.18 (if GST is ticked)</span></li>
+<li><b>Amount to close</b> <span class="eq">Amount = B + charge</span> The bank also adds interest for the days since your last EMI, so the real figure is a little higher.</li>
+<li><b>Interest avoided</b> <span class="eq">Interest avoided = EMIs left × EMI − B</span> This equals total interest minus the interest already paid.</li>
+<li><b>Net saving</b> <span class="eq">Net = interest avoided − charge</span></li>
+</ol></div>
   <div class="grid">
     <div class="panel">
       <h3>Your loan</h3>
@@ -362,10 +408,102 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
   </div>
 </section>
 
+<!-- ================= PREPAY OR INVEST ================= -->
+<section class="view" id="v-invest" hidden>
+  <div class="viewhead"><div class="vh-top"><span class="chip">Prepay or invest?</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-invest" data-fx="invest">ƒx How it's calculated</button></div><h2>Should I prepay the loan or invest the money?</h2>
+    <ol class="steps"><li>Enter your loan</li><li>Enter the spare money and when you'd use it</li><li>Pick where you'd invest it</li><li>See which leaves you richer</li></ol></div>
+  <div class="card fx" id="fx-invest" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="invest">Close</button></h4><ol>
+<li><b>Fair comparison</b>: both plans take exactly the same money out of your pocket every month. Only where the spare money goes changes.</li>
+<li><b>Prepay plan</b>: the spare money goes into the loan, so it closes early (part payment rules). From then until the original last EMI, the EMI you no longer pay is invested each month.</li>
+<li><b>Invest plan</b>: the spare money is invested, and the normal EMIs continue to the end.</li>
+<li><b>Interest saved</b> <span class="eq">Interest saved = interest without prepaying − interest with prepaying</span> It is not added separately: <span class="eq">Freed EMIs invested = amount prepaid + interest saved − charges</span></li>
+<li><b>Monthly growth</b> <span class="eq">g = (1 + yearly return ÷ 100)^(1/12) − 1 · Value next month = value × (1 + g) + new money</span></li>
+<li><b>Tax at the end</b>. FD and debt fund: <span class="eq">Tax = (final value − money put in) × your slab × 1.04</span> Equity fund: each month's money is a separate purchase. Money held over 12 months is long-term, the rest short-term: <span class="eq">Tax = (long-term gains − ₹1.25 L) × 12.5% × 1.04 + short-term gains × 20% × 1.04</span> All rates come from the Tax rates box and can be edited.</li>
+<li><b>Family member's name</b>: FD and debt fund tax become 0% (their slab with no taxable income). Equity keeps the long-term and short-term rates, because the ₹12 lakh rebate does not apply to them. If the basic exemption box is ticked: <span class="eq">Taxable short-term = short-term gains − ₹4 L · Taxable long-term = long-term gains − ₹1.25 L − any ₹4 L left</span></li>
+<li><b>Money in hand</b> <span class="eq">In hand = final value − tax</span> compared on the date your loan was originally due to end, when the loan is fully paid in both plans.</li>
+<li><b>Break-even return</b>: the return at which both plans leave the same money in hand, found by trial. Below it, prepaying wins.</li>
+</ol></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Your loan</h3>
+      <div class="field"><label for="h-amt">Loan amount (₹)</label><input id="h-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="h-amt-h"></span></div>
+      <div class="row2">
+        <div class="field"><label for="h-rate">Loan rate (%)</label><input id="h-rate" type="number" min="0" step="0.05" value="7.70"></div>
+        <div class="field"><label for="h-ten">Tenure (months)</label><input id="h-ten" type="number" min="1" max="480" value="84"><span class="hint" id="h-ten-h"></span></div>
+      </div>
+      <div class="field"><label for="h-start">First EMI month</label><input id="h-start" type="month" value="2026-11"></div>
+
+      <h3>Your spare money <span class="example">Example</span></h3>
+      <div class="seg" id="h-mode"><button type="button" data-v="lump" aria-pressed="true">Lump sum</button><button type="button" data-v="close" aria-pressed="false">Close loan</button><button type="button" data-v="monthly" aria-pressed="false">Every month</button></div>
+      <div class="row2" id="h-lump-wrap">
+        <div class="field"><label for="h-x">Amount (₹)</label><input id="h-x" type="number" min="0" step="10000" value="200000"></div>
+        <div class="field"><label for="h-xm">After EMI no.</label><input id="h-xm" type="number" min="1" value="24"></div>
+      </div>
+      <div class="field" id="h-close-wrap" hidden><label for="h-cm">Close after EMI no.</label><input id="h-cm" type="number" min="1" value="36"><span class="hint" id="h-cm-h"></span></div>
+      <div class="row2" id="h-mon-wrap" hidden>
+        <div class="field"><label for="h-mx">Extra each month (₹)</label><input id="h-mx" type="number" min="0" step="500" value="5000"></div>
+        <div class="field"><label for="h-ms">Starting after EMI no.</label><input id="h-ms" type="number" min="1" value="1"></div>
+      </div>
+      <div class="field"><label for="h-ppc">Prepayment charge (%)</label><input id="h-ppc" type="number" min="0" step="0.5" value="0"><span class="hint">0% on floating-rate loans to individuals from 1 Jan 2026. Fixed-rate loans may charge 3–5%.</span></div>
+      <label class="check"><input type="checkbox" id="h-gst" checked> Add 18% GST to the charge</label>
+
+      <h3>Where you'd invest</h3>
+      <div class="seg" id="h-preset"><button type="button" data-v="fd" aria-pressed="true">Bank FD</button><button type="button" data-v="debt" aria-pressed="false">Debt fund</button><button type="button" data-v="eq" aria-pressed="false">Equity fund</button></div>
+      <div class="field"><span class="lbl">Invest in the name of</span>
+        <div class="seg" id="h-who"><button type="button" data-v="me" aria-pressed="true">Me</button><button type="button" data-v="family" aria-pressed="false">Family member, no taxable income</button></div>
+        <span class="hint" id="h-who-h"></span></div>
+      <label class="check" id="h-bel-wrap" hidden><input type="checkbox" id="h-bel"> They can use their unused basic exemption (₹4 lakh) against equity gains</label>
+      <div class="field"><label for="h-ret">Expected return (% a year)</label><input id="h-ret" type="number" step="0.25" value="6.5"></div>
+      <div class="row2">
+        <div class="field"><label for="h-tax">Tax on gains (%)</label><input id="h-tax" type="number" min="0" max="50" step="0.1" value="31.2"></div>
+        <div class="field"><label for="h-free">Tax-free gains (₹)</label><input id="h-free" type="number" min="0" step="5000" value="0"></div>
+      </div>
+      <span class="hint" id="h-tax-h" style="color:var(--ink)"></span>
+      <span class="hint" id="h-preset-h"></span>
+      <details class="taxbox" id="h-taxbox" open>
+        <summary>Tax rates used <span class="hint" id="h-tax-sum"></span></summary>
+        <div class="list" style="margin-top:10px">
+          <div class="field"><label for="t-slab">Your income tax slab (for FD and debt fund gains)</label>
+            <select id="t-slab"><option value="0">0%</option><option value="5">5%</option><option value="10">10%</option><option value="15">15%</option><option value="20">20%</option><option value="25">25%</option><option value="30" selected>30%</option></select></div>
+          <div class="row2">
+            <div class="field"><label for="t-ltcg">Equity long-term gains tax (%), held over 12 months</label><input id="t-ltcg" type="number" min="0" max="50" step="0.5" value="12.5"></div>
+            <div class="field"><label for="t-ex">Equity gains tax-free each year (₹)</label><input id="t-ex" type="number" min="0" step="5000" value="125000"></div>
+          </div>
+          <div class="field"><label for="t-stcg">Equity short-term gains tax (%), if sold within 12 months</label><input id="t-stcg" type="number" min="0" max="50" step="0.5" value="20"></div>
+          <label class="check"><input type="checkbox" id="t-cess" checked> Add 4% health &amp; education cess</label>
+          <span class="hint">Set to the FY 2026-27 rules: equity held over 12 months is taxed at 12.5% on gains above ₹1.25 lakh a year, and equity sold within 12 months at 20%; FD interest and debt funds bought after 1 April 2023 are taxed at your slab. Budget 2026 left these unchanged. If the rules change, edit them here. Your changes are saved in this browser.</span>
+          <button type="button" class="linkbtn" id="t-reset" style="align-self:flex-start">Reset to FY 2026-27 rates</button>
+        </div>
+      </details>
+    </div>
+    <div class="results">
+      <div class="kpis">
+        <div class="kpi hero"><div class="k">Better choice</div><div class="v" id="h-win">–</div><div class="s" id="h-win-s"></div></div>
+        <div class="kpi"><div class="k" id="h-ak">If you prepay</div><div class="v" id="h-a">–</div><div class="s" id="h-a-s"></div></div>
+        <div class="kpi"><div class="k" id="h-bk">If you invest</div><div class="v" id="h-b">–</div><div class="s" id="h-b-s"></div></div>
+        <div class="kpi"><div class="k">Break-even return</div><div class="v" id="h-be">–</div><div class="s" id="h-be-s"></div></div>
+      </div>
+      <div class="card"><h4>Step by step</h4>
+        <div class="tablewrap free"><table id="h-break"><thead><tr><th></th><th>Prepay</th><th>Invest</th></tr></thead><tbody></tbody></table></div>
+        <p class="note" style="margin-top:10px">The interest you save is not added on top. It is why the loan closes early, and the EMIs you stop paying (prepaid amount + interest saved) are what get invested. Adding it again would count it twice.</p></div>
+      <div class="card"><h4>How the two plans compare</h4><p class="say" id="h-say"></p></div>
+      <div class="card"><h4>At other returns</h4><p class="note" style="margin-bottom:10px">Same plan, different yearly returns, using your tax settings. Your chosen return is highlighted.</p>
+        <div class="tablewrap free"><table id="h-table"><thead><tr><th>Return a year</th><th>Prepay leaves you</th><th>Invest leaves you</th><th>Better choice</th><th>By</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h4>Keep in mind</h4><p class="note" style="color:var(--ink)">Prepaying gives a guaranteed return equal to your loan rate. Investment returns are not guaranteed, and equity funds can fall, especially over a few years. Tax here is taken once at the end on total gains; FD interest is really taxed every year, which makes an FD slightly worse than shown. Interest on a personal car loan gives no tax benefit, unlike a home loan. Keep an emergency fund before doing either.</p></div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= 6. COMPARE ================= -->
 <section class="view" id="v-compare" hidden>
-  <div class="viewhead"><span class="chip">Compare banks</span><h2>Which offer costs least overall?</h2>
+  <div class="viewhead"><div class="vh-top"><span class="chip">Compare banks</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-compare" data-fx="compare">ƒx How it's calculated</button></div><h2>Which offer costs least overall?</h2>
     <ol class="steps"><li>Enter the loan and tenure</li><li>Fill in each bank's rate and fees</li><li>Test a rate rise and a prepayment</li><li>See the cheapest</li></ol></div>
+  <div class="card fx" id="fx-compare" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="compare">Close</button></h4><ol>
+<li><b>Each offer</b> runs through the same EMI schedule for the same amount and tenure.</li>
+<li><b>Floating offers</b> switch to (rate + rise) from the chosen EMI, keeping the tenure: <span class="eq">New EMI = EMI formula(balance, new r, EMIs left)</span> Fixed offers keep their rate.</li>
+<li><b>Prepayment</b>: the lump sum is paid after the chosen EMI and the loan finishes sooner. <span class="eq">Prepay charge = lump sum × charge % × 1.18 (if GST is ticked)</span></li>
+<li><b>Total cost</b> <span class="eq">Total cost = total interest + fees × 1.18 + prepayment charge</span> The lowest total cost is the cheapest offer.</li>
+</ol></div>
   <div class="grid">
     <div class="panel">
       <h3>The loan</h3>
@@ -500,7 +638,8 @@ function chart(el,a,b,P){
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px;display:block" role="img" aria-label="Balance left over time">${g}<path class="area-b" d="${bp}L${x(lb).toFixed(1)} ${y(0)}L${x(0)} ${y(0)}Z"/><path class="line-a" d="${path(a)}"/><path class="line-b" d="${bp}"/><circle cx="${x(lb)}" cy="${y(0)}" r="4" fill="var(--accent)"/></svg>`;
 }
 const cmpRows=(tb,rows)=>{ tb.innerHTML=rows.map(r=>'<tr><td>'+r.join('</td><td>')+'</td></tr>').join(''); };
-const bind=(ids,fn)=>ids.forEach(id=>['input','change'].forEach(ev=>$(id).addEventListener(ev,()=>{ fn(); save(); })));
+function flashKpis(el){ const v=el&&el.closest&&el.closest('.view'), k=v&&v.querySelector('.kpis'); if(!k) return; k.classList.remove('flash'); void k.offsetWidth; k.classList.add('flash'); }
+const bind=(ids,fn)=>ids.forEach(id=>['input','change'].forEach(ev=>$(id).addEventListener(ev,()=>{ fn(); save(); if(ev==='input') flashKpis($(id)); })));
 
 // ---------- 1. EMI (fixed or floating) ----------
 const aMethod=seg('a-method',()=>calcA());
@@ -538,6 +677,10 @@ function calcA(){
     else { $('a-k4').textContent='Last EMI'; $('a-v4').textContent=dateOf(st,r.months); $('a-s4').textContent='First EMI '+dateOf(st,1); }
   }
   $('a-tot').textContent=short(P+r.totI); $('a-tot-s').textContent='Principal + interest';
+  { const i=rate/1200, f=Math.pow(1+i,n), e=pmt(P,rate,n), b1=P*i;
+    $('a-fx-ex').innerHTML = flat
+      ? `<b>Your numbers:</b> total interest = ${inr(P)} × ${rate}% × ${(n/12).toFixed(2)} yrs = ${inr(r.totI)}; EMI = (${inr(P)} + ${inr(r.totI)}) ÷ ${n} = <b>${inr(r.firstEmi)}</b>.`
+      : `<b>Your numbers:</b> r = ${rate} ÷ 12 ÷ 100 = ${i.toFixed(6)}; (1 + r)<sup>${n}</sup> = ${f.toFixed(4)}; EMI = ${inr(P)} × ${i.toFixed(6)} × ${f.toFixed(4)} ÷ ${(f-1).toFixed(4)} = <b>${inr(e)}</b>. Month 1: interest = ${inr(P)} × ${i.toFixed(6)} = ${inr(b1)}, principal = ${inr(e-b1)}, balance left = ${inr(P-(e-b1))}.`; }
   const t=P+r.totI; $('a-bp').style.width=(P/t*100)+'%'; $('a-bi').style.width=(r.totI/t*100)+'%'; $('a-lp').textContent=short(P); $('a-li').textContent=short(r.totI);
   schedule($('a-table').tBodies[0],r.rows,st,[x=>x.label,x=>pct(x.rate),x=>inr(x.emi),x=>inr(x.int),x=>inr(x.pr),x=>inr(x.bal)]);
 }
@@ -624,6 +767,100 @@ function calcF(){
 }
 bind(['f-amt','f-rate','f-ten','f-start','f-m','f-c','f-gst'],calcF);
 
+// ---------- PREPAY OR INVEST ----------
+const hMode=seg('h-mode',()=>calcH());
+const hWho=seg('h-who',()=>{ applyPresetTax(false); calcH(); });
+const TAX_DEFAULT={slab:'30',ltcg:12.5,stcg:20,ex:125000,cess:true};
+const r2=x=>Math.round(x*100)/100;
+function taxRates(){ const c=$('t-cess').checked?1.04:1; return {slab:num('t-slab'), slabEff:r2(num('t-slab')*c), ltcg:num('t-ltcg'), eqEff:r2(num('t-ltcg')*c), stcg:num('t-stcg'), stEff:r2(num('t-stcg')*c), ex:num('t-ex'), cess:$('t-cess').checked}; }
+function presetVals(k){ const t=taxRates(), cs=t.cess?' plus 4% cess':'', fam=hWho()==='family';
+  if(fam && k==='fd') return {r:6.5,t:0,f:0,h:'Bank FDs pay about 6–7% for 2–3 years. In a family member\u2019s name, the interest is taxed at their slab, which is 0% if they have no taxable income.'};
+  if(fam && k==='debt') return {r:7,t:0,f:0,h:'Debt funds are taxed at the holder\u2019s slab, which is 0% for a family member with no taxable income.'};
+  if(k==='fd') return {r:6.5,t:t.slabEff,f:0,h:`Bank FDs pay about 6–7% for 2–3 years. Interest is taxed at your ${t.slab}% slab${cs}.`};
+  if(k==='debt') return {r:7,t:t.slabEff,f:0,h:`Debt funds bought after April 2023 are taxed at your ${t.slab}% slab${cs}, like an FD.`};
+  return {r:12,t:t.eqEff,f:t.ex,h:`Equity index funds have averaged about 11–13% over long periods, but returns are not guaranteed and can be negative over a few years. Gains on money held over 12 months are taxed at ${t.ltcg}%${cs} above ${inr(t.ex)} a year; money held 12 months or less at ${t.stcg}%${cs}.`}; }
+function applyPresetTax(withReturn){ const p=presetVals(hPreset()); if(withReturn) $('h-ret').value=p.r; $('h-tax').value=p.t; $('h-free').value=p.f; }
+const hPreset=seg('h-preset',()=>{ applyPresetTax(true); calcH(); });
+function taxSummary(){ const t=taxRates(); $('h-tax-sum').textContent=`Slab ${t.slab}% · equity LTCG ${t.ltcg}% above ${short(t.ex)}, STCG ${t.stcg}%${t.cess?' · + cess':''}`; }
+['t-slab','t-ltcg','t-stcg','t-ex','t-cess'].forEach(id=>['input','change'].forEach(ev=>$(id).addEventListener(ev,()=>{ applyPresetTax(false); calcH(); save(); })));
+$('t-reset').onclick=()=>{ $('t-slab').value=TAX_DEFAULT.slab; $('t-ltcg').value=TAX_DEFAULT.ltcg; $('t-stcg').value=TAX_DEFAULT.stcg; $('t-ex').value=TAX_DEFAULT.ex; $('t-cess').checked=TAX_DEFAULT.cess; applyPresetTax(false); calcH(); save(); };
+function hRun(P,rate,n,mode,ret,T){
+  const ppc=num('h-ppc'), gst=$('h-gst').checked;
+  const base=simulate({P,rate,n});
+  let A;
+  if(mode==='close') A=simulate({P,rate,n,foreclose:Math.min(Math.max(1,Math.round(num('h-cm',1))),n-1),fcCharge:ppc,gst});
+  else if(mode==='monthly') A=simulate({P,rate,n,prepays:[{kind:'every',every:1,amount:num('h-mx'),m:Math.max(1,Math.round(num('h-ms',1)))}],prepayMode:'tenure',ppCharge:ppc,gst});
+  else A=simulate({P,rate,n,prepays:[{kind:'once',amount:num('h-x'),m:Math.max(1,Math.round(num('h-xm',1)))}],prepayMode:'tenure',ppCharge:ppc,gst});
+  const N=base.months, mr=Math.pow(1+ret/100,1/12)-1;
+  let cA=0,kA=0,cB=0,kB=0; const lotsA=[], lotsB=[];
+  for(let t=1;t<=N;t++){
+    cA*=1+mr; cB*=1+mr;
+    const ra=A.rows[t-1], oa= ra? ra.emi+ra.pp+ra.ch : 0, ob=base.rows[t-1].emi, d=oa-ob;
+    if(d>0.5){ cB+=d; kB+=d; lotsB.push([t,d]); } else if(d<-0.5){ cA+=-d; kA+=-d; lotsA.push([t,-d]); }
+  }
+  // each month's money is a separate purchase; held over 12 months = long-term
+  const taxOf=lots=>{ let lt=0, st=0, ltIn=0, stIn=0;
+    lots.forEach(([t,a])=>{ const held=N-t, g=a*(Math.pow(1+mr,held)-1); if(held>12){ lt+=g; ltIn+=a; } else { st+=g; stIn+=a; } });
+    let tax; if(T.split){ let rem=T.basic||0; const stT=Math.max(0,st-rem); rem=Math.max(0,rem-st); const ltT=Math.max(0,lt-(T.free||0)-rem); tax=ltT*T.lt/100+stT*T.st/100; }
+    else tax=Math.max(0,lt+st-(T.free||0))*T.single/100;
+    return {tax, lt, st, ltIn, stIn}; };
+  const xA=taxOf(lotsA), xB=taxOf(lotsB);
+  return {base,A,N,netA:cA-xA.tax,netB:cB-xB.tax,cA,kA,cB,kB,xA,xB};
+}
+function calcH(){
+  hintAmt('h'); hintTen('h');
+  const P=num('h-amt'), rate=num('h-rate'), n=Math.max(2,Math.round(num('h-ten',2))), st=$('h-start').value, mode=hMode(), ret=num('h-ret'), tax=num('h-tax'), free=num('h-free');
+  $('h-lump-wrap').hidden=mode!=='lump'; $('h-close-wrap').hidden=mode!=='close'; $('h-mon-wrap').hidden=mode!=='monthly';
+  taxSummary(); const p=presetVals(hPreset());
+  const tr=taxRates(), kind=hPreset(), isPreset=r2(tax)===r2(p.t);
+  const fam=hWho()==='family', bel=fam&&$('h-bel').checked;
+  $('h-bel-wrap').hidden=!(fam&&kind==='eq');
+  $('h-who-h').textContent= fam ? 'A parent, adult child or sibling whose income is below the tax limit. Not your spouse or a child under 18: income from money you give them is added to yours.' : 'Gains are taxed at your own rates.';
+  const why = !isPreset ? `${r2(tax)}%, the rate you entered.`
+    : (fam && kind!=='eq') ? `0%. The family member has no taxable income, so FD interest and debt fund gains are tax-free for them.`
+    : (fam && kind==='eq') ? `${r2(tax)}% on long-term gains above ${short(free)}${bel?' plus their unused ₹4 lakh basic exemption':''}, and ${tr.stEff}% on short-term gains${bel?' after that exemption':''}. Equity gains are taxed at these special rates even with no other income, because the ₹12 lakh rebate does not apply to them.`
+    : kind==='eq' ? `${r2(tax)}% on long-term gains (equity ${tr.ltcg}%${tr.cess?' + 4% cess':''}${free?', above '+short(free):''}) and ${tr.stEff}% on short-term gains (${tr.stcg}%${tr.cess?' + 4% cess':''}) for money held 12 months or less. Your ${tr.slab}% income tax slab does not apply to equity funds.`
+    : `${r2(tax)}% = your ${tr.slab}% income tax slab${tr.cess&&tr.slab?' + 4% cess':''}. FD interest and debt fund gains are taxed at your slab.`;
+  $('h-tax-h').textContent='Tax used: '+why;
+  const T = (kind==='eq' && isPreset) ? {split:true, lt:tax, st:tr.stEff, free, basic: bel?400000:0} : {split:false, single:tax, free};
+  const taxShort = !isPreset ? r2(tax)+'% tax (your entry)' : kind==='eq' ? 'equity tax'+(fam?' in their name':'') : (fam? 'tax, 0% in their name' : r2(tax)+'% slab tax'); $('h-preset-h').textContent= Number(ret)===p.r && r2(tax)===r2(p.t) && free===p.f ? p.h : 'Custom return or tax. Pick a preset above to reset.';
+  const r=hRun(P,rate,n,mode,ret,T), {base,A,N}=r, end=dateOf(st,N), aEnd=dateOf(st,A.months);
+  if(mode==='close'){ const cm=Math.min(Math.max(1,Math.round(num('h-cm',1))),n-1); $('h-cm-h').textContent='Balance then: '+inr(base.rows[cm-1].bal)+(A.charges?' + '+inr(A.charges)+' charge':''); }
+  const diff=r.netA-r.netB, prepayWins=diff>=0;
+  $('h-win').textContent= prepayWins? 'Prepay' : 'Invest'; $('h-win-s').textContent='You\u2019d have '+inr(Math.abs(diff))+' more in hand by '+end;
+  const early=N-A.months; $('h-ak').textContent='Prepay: in hand by '+end; $('h-a').textContent=inr(r.netA); const saved=base.totI-A.totI; $('h-a-s').textContent= early>0? 'Loan done in '+aEnd+' ('+early+' months early), '+inr(saved)+' less interest. Freed EMIs of '+inr(base.firstEmi)+' saved for '+early+' months' : 'Loan finishes on time in '+aEnd+', '+inr(saved)+' less interest';
+  const taxNote=x=> T.split && (x.lt>0||x.st>0) ? ' <span class="hint">('+inr(x.st)+' short-term, '+inr(x.lt)+' long-term gains)</span>' : '';
+  { const ppIn=A.totPP, gA=r.cA-r.kA, gB=r.cB-r.kB, tA=r.cA-r.netA, tB=r.cB-r.netB;
+    const label= mode==='monthly'? 'Extra money used' : 'Spare money used';
+    cmpRows($('h-break').tBodies[0],[
+      ['1. '+label, inr(ppIn)+' <span class="hint">into the loan</span>', inr(r.kB)+' <span class="hint">invested</span>'],
+      ['2. Interest saved on the loan', '<span class="pos">+'+inr(saved)+'</span>', '–'],
+      ['3. Prepayment charges', A.charges? '<span class="neg">−'+inr(A.charges)+'</span>' : '–', '–'],
+      ['4. Money invested', inr(r.kA)+' <span class="hint">'+early+' freed EMIs, '+aEnd+' to '+end+'</span>', inr(r.kB)],
+      ['5. Growth at '+pct(ret), '+'+inr(gA), '+'+inr(gB)],
+      ['6. Tax on gains', (tA? '−'+inr(tA) : '₹0')+taxNote(r.xA), (tB? '−'+inr(tB) : '₹0')+taxNote(r.xB)],
+      ['<b>In hand by '+end+'</b>', '<b>'+inr(r.netA)+'</b>', '<b>'+inr(r.netB)+'</b>']]); }
+  $('h-bk').textContent='Invest: in hand by '+end; $('h-b').textContent=inr(r.netB); $('h-b-s').textContent='Grows at '+pct(ret)+' a year, after '+taxShort+(free?' (first '+short(free)+' of gains tax-free)':'')+'. Loan runs to '+end;
+  // break-even
+  let lo=0,hi=40; const f=x=>{ const q=hRun(P,rate,n,mode,x,T); return q.netA-q.netB; };
+  if(f(hi)>0){ $('h-be').textContent='Above 40%'; $('h-be-s').textContent='Prepaying wins at any realistic return'; }
+  else if(f(lo)<0){ $('h-be').textContent='—'; $('h-be-s').textContent='Investing wins even at 0%'; }
+  else { for(let k=0;k<40;k++){ const m=(lo+hi)/2; if(f(m)>0) lo=m; else hi=m; } const be=(lo+hi)/2;
+    $('h-be').textContent=pct(be); $('h-be-s').textContent='Investing wins only above this return (before '+taxShort+'). It doesn\u2019t change with the return you enter'; }
+  // plain words
+  const freed=base.firstEmi;
+  let what, inv;
+  if(mode==='monthly'){ const mx=num('h-mx'); what=`add ${inr(mx)} to every EMI`; inv=`start a ${inr(mx)} monthly SIP instead and keep paying the normal EMI`; }
+  else if(mode==='close'){ const cm=Math.min(Math.max(1,Math.round(num('h-cm',1))),n-1); what=`close the loan after EMI ${cm} by paying ${inr(base.rows[cm-1].bal+A.charges)}`; inv=`invest that ${inr(base.rows[cm-1].bal+A.charges)} instead and keep paying EMIs`; }
+  else { what=`pay ${inr(num('h-x'))} into the loan after EMI ${Math.round(num('h-xm',1))}`; inv=`invest that ${inr(num('h-x'))} instead and keep paying EMIs`; }
+  $('h-say').innerHTML=`<b>By ${end}</b>, when your loan was due to end, you would have <b>${inr(r.netA)}</b> in your pocket if you prepay, or <b>${inr(r.netB)}</b> if you invest. Either way the loan is fully paid by then.<br><br><b>Prepay:</b> you ${what}. The loan ends in ${aEnd} instead of ${end}, <b>${N-A.months} months early</b>, saving ${inr(base.totI-A.totI)} in interest${A.charges?' (minus '+inr(A.charges)+' in charges)':''}. For those ${N-A.months} months, until ${end}, you invest the ${inr(freed)} EMI you no longer pay. Those EMIs add up to ${inr(r.kA)}: the money you prepaid plus the ${inr(base.totI-A.totI)} interest you saved${A.charges?', minus charges':''}. By ${end} they grow to <b>${inr(r.netA)}</b> after tax.<br><br><b>Invest:</b> you ${inv}. By ${end} it grows to <b>${inr(r.netB)}</b> after tax.<br><br>Both plans take exactly the same money out of your pocket each month, so the one that ends with more is the better deal. Here that is <b>${prepayWins?'prepaying':'investing'}</b>, by ${inr(Math.abs(diff))}.`;
+  // returns table
+  const rs=[...new Set([4,5,6,6.5,7,rate,8,9,10,12,14,Number(ret)].map(x=>Math.round(x*100)/100))].sort((a,b)=>a-b);
+  $('h-table').tBodies[0].innerHTML=rs.map(x=>{ const q=hRun(P,rate,n,mode,x,T), d=q.netA-q.netB, w=d>=0;
+    return `<tr${x===Number(ret)?' class="hl"':''}><td>${pct(x)}${x===rate?' <span class="tag">= loan rate</span>':''}</td><td>${inr(q.netA)}</td><td>${inr(q.netB)}</td><td class="${w?'pos':''}">${w?'Prepay':'Invest'}</td><td>${inr(Math.abs(d))}</td></tr>`; }).join('');
+}
+bind(['h-amt','h-rate','h-ten','h-start','h-x','h-xm','h-cm','h-mx','h-ms','h-ppc','h-gst','h-ret','h-tax','h-free','h-bel'],calcH);
+
 // ---------- 6. COMPARE ----------
 const gOff=makeList('g-offers',offTpl,()=>calcG());
 $('g-add').onclick=()=>{ gOff.add({name:'Another bank',rate:8,type:'floating',fee:0,ppc:0}); calcG(); save(); };
@@ -639,8 +876,12 @@ function calcG(){
 }
 bind(['g-amt','g-ten','g-up','g-upm','g-pp','g-ppm','g-gst'],calcG);
 
+// ---------- formula panels ----------
+document.addEventListener('click',e=>{ const b=e.target.closest('.fxbtn'); if(!b) return; const id=b.dataset.fx, card=$('fx-'+id); if(!card) return;
+  card.hidden=!card.hidden; document.querySelectorAll('.fxbtn[aria-controls="fx-'+id+'"]').forEach(x=>{ x.setAttribute('aria-expanded',card.hidden?'false':'true'); x.textContent=card.hidden?'ƒx How it\u2019s calculated':'ƒx Hide formulas'; }); });
+
 // ---------- navigation ----------
-const VIEWS=['emi','fees','part','close','compare'];
+const VIEWS=['emi','fees','part','close','invest','compare'];
 function go(v){
   const home=!VIEWS.includes(v);
   $('home').hidden=!home; $('topbar').hidden=home;
@@ -672,7 +913,7 @@ if(saved){
   gOff.add({name:'UCO (direct, CIBIL 750–824)',rate:7.70,type:'floating',fee:0,ppc:0});
   gOff.add({name:'Union Bank',rate:8.00,type:'floating',fee:0,ppc:0});
 }
-calcA(); calcC(); calcD(); calcF(); calcG();
+calcA(); calcC(); calcD(); calcF(); calcH(); calcG();
 ready=true;
 const h=(location.hash||'').slice(1);
 let start='home'; if(VIEWS.includes(h)) start=h; if(h==='float') start='emi';
