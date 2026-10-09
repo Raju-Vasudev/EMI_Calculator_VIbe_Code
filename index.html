@@ -142,8 +142,6 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 </style>
 </head>
 <body>
-
-
 <div class="wrap">
 
 <!-- ================= HOME ================= -->
@@ -826,6 +824,10 @@ function calcH(){
   const taxShort = !isPreset ? r2(tax)+'% tax (your entry)' : kind==='eq' ? 'equity tax'+(fam?' in their name':'') : (fam? 'tax, 0% in their name' : r2(tax)+'% slab tax'); $('h-preset-h').textContent= Number(ret)===p.r && r2(tax)===r2(p.t) && free===p.f ? p.h : 'Custom return or tax. Pick a preset above to reset.';
   const r=hRun(P,rate,n,mode,ret,T), {base,A,N}=r, end=dateOf(st,N), aEnd=dateOf(st,A.months);
   if(mode==='close'){ const cm=Math.min(Math.max(1,Math.round(num('h-cm',1))),n-1); $('h-cm-h').textContent='Balance then: '+inr(base.rows[cm-1].bal)+(A.charges?' + '+inr(A.charges)+' charge':''); }
+  if(A.totPP<0.5){ ['h-win','h-a','h-b','h-be'].forEach(i=>$(i).textContent='—'); $('h-win-s').textContent='Nothing to compare'; $('h-a-s').textContent='No prepayment happens'; $('h-b-s').textContent='Nothing to invest';
+    $('h-be-s').textContent='Not applicable';
+    $('h-say').textContent= mode==='close' ? 'Choose an EMI number before the last one to close the loan.' : 'No money goes into the loan. Check the amount, and make sure the EMI number is before your loan ends ('+n+' EMIs), so there is something to compare.';
+    ['h-break','h-table'].forEach(i=>$(i).tBodies[0].innerHTML=''); return; }
   const diff=r.netA-r.netB, prepayWins=diff>=0;
   $('h-win').textContent= prepayWins? 'Prepay' : 'Invest'; $('h-win-s').textContent='You\u2019d have '+inr(Math.abs(diff))+' more in hand by '+end;
   const early=N-A.months; $('h-ak').textContent='Prepay: in hand by '+end; $('h-a').textContent=inr(r.netA); const saved=base.totI-A.totI; $('h-a-s').textContent= early>0? 'Loan done in '+aEnd+' ('+early+' months early), '+inr(saved)+' less interest. Freed EMIs of '+inr(base.firstEmi)+' saved for '+early+' months' : 'Loan finishes on time in '+aEnd+', '+inr(saved)+' less interest';
@@ -852,12 +854,12 @@ function calcH(){
   let what, inv;
   if(mode==='monthly'){ const mx=num('h-mx'); what=`add ${inr(mx)} to every EMI`; inv=`start a ${inr(mx)} monthly SIP instead and keep paying the normal EMI`; }
   else if(mode==='close'){ const cm=Math.min(Math.max(1,Math.round(num('h-cm',1))),n-1); what=`close the loan after EMI ${cm} by paying ${inr(base.rows[cm-1].bal+A.charges)}`; inv=`invest that ${inr(base.rows[cm-1].bal+A.charges)} instead and keep paying EMIs`; }
-  else { what=`pay ${inr(num('h-x'))} into the loan after EMI ${Math.round(num('h-xm',1))}`; inv=`invest that ${inr(num('h-x'))} instead and keep paying EMIs`; }
-  $('h-say').innerHTML=`<b>By ${end}</b>, when your loan was due to end, you would have <b>${inr(r.netA)}</b> in your pocket if you prepay, or <b>${inr(r.netB)}</b> if you invest. Either way the loan is fully paid by then.<br><br><b>Prepay:</b> you ${what}. The loan ends in ${aEnd} instead of ${end}, <b>${N-A.months} months early</b>, saving ${inr(base.totI-A.totI)} in interest${A.charges?' (minus '+inr(A.charges)+' in charges)':''}. For those ${N-A.months} months, until ${end}, you invest the ${inr(freed)} EMI you no longer pay. Those EMIs add up to ${inr(r.kA)}: the money you prepaid plus the ${inr(base.totI-A.totI)} interest you saved${A.charges?', minus charges':''}. By ${end} they grow to <b>${inr(r.netA)}</b> after tax.<br><br><b>Invest:</b> you ${inv}. By ${end} it grows to <b>${inr(r.netB)}</b> after tax.<br><br>Both plans take exactly the same money out of your pocket each month, so the one that ends with more is the better deal. Here that is <b>${prepayWins?'prepaying':'investing'}</b>, by ${inr(Math.abs(diff))}.`;
+  else { const used=A.totPP, cap=num('h-x')-used>1; what=`pay ${inr(used)} into the loan after EMI ${Math.round(num('h-xm',1))}${cap?' (that is all that was left to pay, you entered '+inr(num('h-x'))+')':''}`; inv=`invest that ${inr(used)} instead and keep paying EMIs`; }
+  $('h-say').innerHTML=`<b>By ${end}</b>, when your loan was due to end, you would have <b>${inr(r.netA)}</b> in your pocket if you prepay, or <b>${inr(r.netB)}</b> if you invest. Either way the loan is fully paid by then.<br><br><b>Prepay:</b> you ${what}. The loan ends in ${aEnd} instead of ${end}, <b>${N-A.months} months early</b>, saving ${inr(base.totI-A.totI)} in interest${A.charges?' (minus '+inr(A.charges)+' in charges)':''}. For those ${N-A.months} months, until ${end}, you invest the ${inr(freed)} EMI you no longer pay. Those EMIs add up to ${inr(r.kA)}: the money you prepaid plus the ${inr(base.totI-A.totI)} interest you saved. By ${end} they grow to <b>${inr(r.netA)}</b> after tax.<br><br><b>Invest:</b> you ${inv}. By ${end} it grows to <b>${inr(r.netB)}</b> after tax.<br><br>Both plans take exactly the same money out of your pocket each month, so the one that ends with more is the better deal. Here that is <b>${prepayWins?'prepaying':'investing'}</b>, by ${inr(Math.abs(diff))}.`;
   // returns table
   const rs=[...new Set([4,5,6,6.5,7,rate,8,9,10,12,14,Number(ret)].map(x=>Math.round(x*100)/100))].sort((a,b)=>a-b);
   $('h-table').tBodies[0].innerHTML=rs.map(x=>{ const q=hRun(P,rate,n,mode,x,T), d=q.netA-q.netB, w=d>=0;
-    return `<tr${x===Number(ret)?' class="hl"':''}><td>${pct(x)}${x===rate?' <span class="tag">= loan rate</span>':''}</td><td>${inr(q.netA)}</td><td>${inr(q.netB)}</td><td class="${w?'pos':''}">${w?'Prepay':'Invest'}</td><td>${inr(Math.abs(d))}</td></tr>`; }).join('');
+    return `<tr${x===Number(ret)?' class="hl"':''}><td>${pct(x)}${x===Math.round(rate*100)/100?' <span class="tag">= loan rate</span>':''}</td><td>${inr(q.netA)}</td><td>${inr(q.netB)}</td><td class="${w?'pos':''}">${w?'Prepay':'Invest'}</td><td>${inr(Math.abs(d))}</td></tr>`; }).join('');
 }
 bind(['h-amt','h-rate','h-ten','h-start','h-x','h-xm','h-cm','h-mx','h-ms','h-ppc','h-gst','h-ret','h-tax','h-free','h-bel'],calcH);
 
