@@ -7,22 +7,39 @@
 <title>EMI & Prepayment Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: home screen of six calculator cards; each calculator is its own view with a back link,
    a quick switcher, a how-to strip, then inputs (left) and results (right), stacking on phones */
 :root{
-  --paper:#f4f6f3; --card:#ffffff; --ink:#15233b; --muted:#5d6878; --line:#dce2da;
-  --soft:#e7efe9; --accent:#0d6e66; --accent-ink:#ffffff; --interest:#b25a0a; --good:#177245; --warn:#a33a1f;
-  --display:"Outfit", "Segoe UI", system-ui, sans-serif;
-  --body:"Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* night: ink-indigo base, cyan signal, violet depth, amber for interest */
+  --paper:#060a1a; --card:#0d1430; --glass:rgba(15,22,52,.62); --glass-edge:rgba(255,255,255,.07);
+  --field:rgba(4,7,20,.62); --ink:#e9eeff; --muted:#93a0cc; --line:rgba(137,160,255,.20);
+  --soft:rgba(110,135,255,.13); --grid:rgba(120,150,255,.06);
+  --accent:#4fd8ff; --accent2:#9b87ff; --accent-ink:#03121e; --glow:rgba(79,216,255,.38);
+  --interest:#ffb454; --good:#5ff0b0; --warn:#ff7f93;
+  --hero-bg:linear-gradient(135deg,rgba(79,216,255,.26),rgba(155,135,255,.30)); --hero-ink:#f4f7ff; --hero-line:rgba(130,225,255,.55);
+  --shadow:0 24px 48px -30px rgba(0,0,0,.85);
+  --display:"Sora","Segoe UI",system-ui,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --paper:#0f1517; --card:#162024; --ink:#e6ecee; --muted:#97a3aa; --line:#2a373b;
-  --soft:#1b2b29; --accent:#3cc7b6; --accent-ink:#06211e; --interest:#f0a24a; --good:#5fd394; --warn:#f08a6c; color-scheme:dark } }
-:root[data-theme="dark"]{
-  --paper:#0f1517; --card:#162024; --ink:#e6ecee; --muted:#97a3aa; --line:#2a373b;
-  --soft:#1b2b29; --accent:#3cc7b6; --accent-ink:#06211e; --interest:#f0a24a; --good:#5fd394; --warn:#f08a6c; color-scheme:dark }
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --paper:#edf1ff; --card:#ffffff; --glass:rgba(255,255,255,.74); --glass-edge:rgba(255,255,255,.9);
+  --field:#f5f7ff; --ink:#0d1533; --muted:#56628f; --line:rgba(60,85,210,.17);
+  --soft:rgba(70,95,255,.08); --grid:rgba(60,85,210,.06);
+  --accent:#2859f0; --accent2:#7a4df0; --accent-ink:#ffffff; --glow:rgba(40,89,240,.30);
+  --interest:#b45f00; --good:#08845a; --warn:#c0243f;
+  --hero-bg:linear-gradient(135deg,#2859f0,#7a4df0); --hero-ink:#ffffff; --hero-line:rgba(255,255,255,.5);
+  --shadow:0 22px 40px -28px rgba(40,60,160,.45); color-scheme:light } }
+:root[data-theme="light"]{
+  --paper:#edf1ff; --card:#ffffff; --glass:rgba(255,255,255,.74); --glass-edge:rgba(255,255,255,.9);
+  --field:#f5f7ff; --ink:#0d1533; --muted:#56628f; --line:rgba(60,85,210,.17);
+  --soft:rgba(70,95,255,.08); --grid:rgba(60,85,210,.06);
+  --accent:#2859f0; --accent2:#7a4df0; --accent-ink:#ffffff; --glow:rgba(40,89,240,.30);
+  --interest:#b45f00; --good:#08845a; --warn:#c0243f;
+  --hero-bg:linear-gradient(135deg,#2859f0,#7a4df0); --hero-ink:#ffffff; --hero-line:rgba(255,255,255,.5);
+  --shadow:0 22px 40px -28px rgba(40,60,160,.45); color-scheme:light }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -139,6 +156,89 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 .line-a{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:5 4}
 .line-b{fill:none;stroke:var(--accent);stroke-width:2.5}
 .area-b{fill:var(--accent);opacity:.10}
+
+/* ===== Futuristic skin: glass panels over a lit grid, cyan-to-violet signal colour ===== */
+body{background:radial-gradient(900px 520px at 8% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 62%),radial-gradient(820px 620px at 104% 2%,color-mix(in srgb,var(--accent2) 18%,transparent),transparent 58%),var(--paper);background-attachment:fixed;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0,#000 25%,transparent 78%);mask-image:radial-gradient(ellipse 80% 60% at 50% 0,#000 25%,transparent 78%)}
+.wrap{position:relative;z-index:1}
+h1,h2,h3,h4{letter-spacing:-.015em}
+
+/* glass surfaces */
+.panel,.card,.kpi,.tool,.back{background:linear-gradient(180deg,var(--glass-edge),transparent 38%),var(--glass);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);border:1px solid var(--line);box-shadow:var(--shadow),inset 0 1px 0 var(--glass-edge)}
+.panel{border-radius:20px;padding:20px;gap:16px}
+.card{border-radius:16px}
+.kpi{border-radius:14px}
+.fx{border-color:color-mix(in srgb,var(--accent) 60%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent),var(--shadow)}
+
+/* the one loud element: the headline number glows */
+.kpi.hero{background:var(--hero-bg);color:var(--hero-ink);border:1px solid var(--hero-line);box-shadow:0 0 38px -8px var(--glow),inset 0 1px 0 rgba(255,255,255,.28)}
+.kpi.hero .k,.kpi.hero .s{color:inherit;opacity:.9}
+.kpi .k{text-transform:none;letter-spacing:.01em;font-size:.82rem;font-weight:600}
+.kpi .v{font-family:var(--display);font-weight:600;font-size:1.5rem;letter-spacing:-.02em}
+.kpi.hero .v{font-size:1.75rem;text-shadow:0 0 22px var(--glow)}
+
+/* headings and labels */
+.chip{display:inline-flex;align-items:center;gap:8px;text-transform:none;letter-spacing:.02em;font-size:.82rem;font-weight:600;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:99px;padding:3px 12px 3px 10px;background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.viewhead h2{font-weight:700;font-size:clamp(1.55rem,3.2vw,2.2rem);letter-spacing:-.025em}
+.panel h3{text-transform:none;letter-spacing:0;font-size:.95rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:9px;margin-top:10px}
+.panel h3::before{content:"";width:3px;height:14px;border-radius:2px;background:linear-gradient(var(--accent),var(--accent2));box-shadow:0 0 10px var(--glow);flex:none}
+.card h4{font-size:1.05rem}
+.steps li::before{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 30%,transparent),color-mix(in srgb,var(--accent2) 30%,transparent));color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* home */
+.home h1{font-weight:700;font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.035em;line-height:1.05;margin-bottom:6px}
+.home > p{font-size:1.02rem;margin-bottom:28px}
+.cards{gap:16px}
+.tool{border-radius:20px;padding:20px;gap:10px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s,transform .2s}
+.tool::after{content:"";position:absolute;inset:auto -30% -60% auto;width:70%;height:90%;background:radial-gradient(closest-side,color-mix(in srgb,var(--accent2) 22%,transparent),transparent);opacity:0;transition:opacity .25s;pointer-events:none}
+.tool:hover{border-color:color-mix(in srgb,var(--accent) 70%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent),0 18px 44px -18px var(--glow)}
+.tool:hover::after{opacity:1}
+.tool .ic{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 24%,transparent),color-mix(in srgb,var(--accent2) 26%,transparent));box-shadow:inset 0 0 0 1px var(--line),0 0 22px -6px var(--glow);color:var(--accent)}
+.tool b{font-size:1.15rem;letter-spacing:-.01em}
+.tool em{color:var(--accent)}
+
+/* controls */
+.back{border-radius:99px;padding:8px 14px;box-shadow:none;color:var(--ink)}
+.switch button{border-radius:99px;background:var(--glass);border-color:var(--line);color:var(--muted)}
+.switch button:hover{color:var(--ink);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+.switch button[aria-current="true"],.seg button[aria-pressed="true"]{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);border-color:transparent;box-shadow:0 0 18px -4px var(--glow)}
+.seg{background:var(--field);border-radius:12px;padding:4px}
+.seg button{border-radius:9px;padding:8px 6px;transition:background .15s,color .15s}
+.seg button:not([aria-pressed="true"]):hover{color:var(--ink)}
+input[type=number],input[type=month],input[type=text],select{background:var(--field);border:1px solid var(--line);border-radius:11px;padding:10px 12px;transition:border-color .15s,box-shadow .15s}
+input[type=number]:focus,input[type=month]:focus,input[type=text]:focus,select:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 24%,transparent),0 0 18px -4px var(--glow)}
+.field label,.lbl{color:var(--muted);font-weight:600}
+.check input{accent-color:var(--accent)}
+.fxbtn,.add{border-radius:99px;background:color-mix(in srgb,var(--accent) 8%,transparent);border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);transition:background .15s,box-shadow .15s}
+.fxbtn:hover,.add:hover{background:color-mix(in srgb,var(--accent) 18%,transparent);box-shadow:0 0 16px -4px var(--glow)}
+.fxbtn[aria-expanded="true"]{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);border-color:transparent}
+.item{background:var(--soft);border:1px solid var(--line);border-radius:14px}
+.opt,.taxbox{background:var(--field);border-radius:14px}
+.opt.on{background:var(--soft);border-color:color-mix(in srgb,var(--accent) 60%,transparent);box-shadow:0 0 22px -10px var(--glow)}
+.example{border-radius:99px;padding:0 8px;text-transform:none;letter-spacing:.02em;font-size:.72rem}
+.tag{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+
+/* tables */
+.tablewrap{border-radius:14px;border-color:var(--line);scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--accent) 45%,transparent) transparent}
+thead th{background:var(--card);text-transform:none;letter-spacing:.01em;font-size:.8rem;color:var(--muted)}
+th,td{border-bottom-color:var(--line)}
+tr.hl td{background:color-mix(in srgb,var(--accent) 11%,transparent)}
+tr.yr:hover{background:var(--soft)}
+tr.mo td{background:transparent}
+.best{text-shadow:0 0 14px color-mix(in srgb,var(--good) 55%,transparent)}
+.pos{color:var(--good)}
+
+/* charts and bars */
+.split{height:14px;border-radius:99px;background:var(--field);box-shadow:inset 0 0 0 1px var(--line)}
+.split span{border-radius:99px}
+#a-bp{background:linear-gradient(90deg,var(--accent),var(--accent2))!important}
+.line-b{stroke:var(--accent);stroke-width:2.75;filter:drop-shadow(0 0 6px var(--glow))}
+.area-b{fill:var(--accent);opacity:.14}
+.chart-grid{stroke-dasharray:2 5}
+@media (prefers-reduced-motion:no-preference){ .tool:hover{transform:translateY(-3px)} .view:not([hidden]){animation:viewin .35s ease-out} }
+#g-pick{font-size:1.3rem!important;line-height:1.2}
+@keyframes viewin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -149,12 +249,12 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
   <h1>EMI &amp; Prepayment Planner</h1>
   <p>Six calculators for a car or home loan. Pick the question you want answered. Each one opens with example figures from the car loan offers we discussed, which you can change.</p>
   <div class="cards">
-    <button class="tool" data-go="emi" type="button"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><b>EMI calculator</b><span>What will my EMI be, and how much interest will I pay? Fixed or floating rate.</span><em>Open →</em></button>
-    <button class="tool" data-go="fees" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><b>One-time charges</b><span>What do I pay upfront: processing fee, stamp duty, RTO?</span><em>Open →</em></button>
-    <button class="tool" data-go="part" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></div><b>Part payment</b><span>How much do I save by paying extra: a lump sum or extra EMIs?</span><em>Open →</em></button>
-    <button class="tool" data-go="close" type="button"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div><b>Foreclosure</b><span>How much do I need to close my loan fully, and what do I save?</span><em>Open →</em></button>
-    <button class="tool" data-go="invest" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 6a3 3 0 006 0zM19 7l-3 6a3 3 0 006 0z"/></svg></div><b>Prepay or invest?</b><span>Should I put spare money into the loan, or invest it instead?</span><em>Open →</em></button>
-    <button class="tool" data-go="compare" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 20V11M12 20V4M18 20v-7"/></svg></div><b>Compare banks</b><span>Which offer costs least overall: fixed vs floating, fees, charges?</span><em>Open →</em></button>
+    <button class="tool" data-go="emi" type="button"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><b>EMI calculator</b><span>What will my EMI be, and how much interest will I pay? Fixed or floating rate.</span><em>Open</em></button>
+    <button class="tool" data-go="fees" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><b>One-time charges</b><span>What do I pay upfront: processing fee, stamp duty, RTO?</span><em>Open</em></button>
+    <button class="tool" data-go="part" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></div><b>Part payment</b><span>How much do I save by paying extra: a lump sum or extra EMIs?</span><em>Open</em></button>
+    <button class="tool" data-go="close" type="button"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div><b>Foreclosure</b><span>How much do I need to close my loan fully, and what do I save?</span><em>Open</em></button>
+    <button class="tool" data-go="invest" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 6a3 3 0 006 0zM19 7l-3 6a3 3 0 006 0z"/></svg></div><b>Prepay or invest?</b><span>Should I put spare money into the loan, or invest it instead?</span><em>Open</em></button>
+    <button class="tool" data-go="compare" type="button"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 20V11M12 20V4M18 20v-7"/></svg></div><b>Compare banks</b><span>Which offer costs least overall: fixed vs floating, fees, charges?</span><em>Open</em></button>
   </div>
   <p class="foot">Results update instantly as you type; there is no calculate button. Everything you enter stays in this browser only. Reducing-balance interest, calculated monthly, as Indian banks use.</p>
 </section>
@@ -494,41 +594,65 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 
 <!-- ================= 6. COMPARE ================= -->
 <section class="view" id="v-compare" hidden>
-  <div class="viewhead"><div class="vh-top"><span class="chip">Compare banks</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-compare" data-fx="compare">ƒx How it's calculated</button></div><h2>Which offer costs least overall?</h2>
-    <ol class="steps"><li>Enter the loan and tenure</li><li>Fill in each bank's rate and fees</li><li>Test a rate rise and a prepayment</li><li>See the cheapest</li></ol></div>
+  <div class="viewhead"><div class="vh-top"><span class="chip">Compare banks</span><button type="button" class="fxbtn" aria-expanded="false" aria-controls="fx-compare" data-fx="compare">ƒx How it's calculated</button></div><h2>Which offer is best for me?</h2>
+    <ol class="steps"><li>Tell us your plans</li><li>Add each bank's rate, fees and charges</li><li>Read the recommendation</li><li>Check what happens if you are wrong</li></ol></div>
   <div class="card fx" id="fx-compare" hidden><h4>How it's calculated <button type="button" class="fxbtn" data-fx="compare">Close</button></h4><ol>
-<li><b>Each offer</b> runs through the same EMI schedule for the same amount and tenure.</li>
-<li><b>Floating offers</b> switch to (rate + rise) from the chosen EMI, keeping the tenure: <span class="eq">New EMI = EMI formula(balance, new r, EMIs left)</span> Fixed offers keep their rate.</li>
-<li><b>Prepayment</b>: the lump sum is paid after the chosen EMI and the loan finishes sooner. <span class="eq">Prepay charge = lump sum × charge % × 1.18 (if GST is ticked)</span></li>
-<li><b>Total cost</b> <span class="eq">Total cost = total interest + fees × 1.18 + prepayment charge</span> The lowest total cost is the cheapest offer.</li>
+<li><b>Each offer</b> runs through the same month-by-month schedule for the same amount and tenure, using your answers about how you will repay and what rates will do.</li>
+<li><b>Floating offers</b> switch to (rate + change) from the chosen EMI, keeping the tenure: <span class="eq">New EMI = EMI formula(balance, new r, EMIs left)</span> Fixed offers keep their rate.</li>
+<li><b>Part-payment</b> is paid after the chosen EMI (once, or every year) and the loan finishes sooner. <span class="eq">Part-payment charge = amount × charge % × 1.18 (if GST is ticked)</span></li>
+<li><b>Closing early</b> pays the whole balance after the chosen EMI. <span class="eq">Closure charge = balance × charge % × 1.18 (if GST is ticked)</span></li>
+<li><b>RBI rule</b>: floating-rate loans to individuals carry no prepayment or closure charge from 1 January 2026. Tick the box to apply this to floating offers. Fixed-rate loans can still charge.</li>
+<li><b>Total cost</b> <span class="eq">Total cost = interest paid + fees × 1.18 + part-payment or closure charge</span> The lowest total cost wins.</li>
+<li><b>Break-even rise</b> is found by trying larger rate rises until the cheapest floating offer costs the same as the cheapest fixed one.</li>
+<li><b>Steady EMI</b>: if you choose this, the pick is the cheapest fixed offer, and the extra cost over the cheapest overall is shown as the price of certainty.</li>
 </ol></div>
   <div class="grid">
     <div class="panel">
-      <h3>The loan</h3>
+      <h3>1. The loan</h3>
       <div class="field"><label for="g-amt">Loan amount (₹)</label><input id="g-amt" type="number" min="1000" step="1000" value="1000000"><span class="hint" id="g-amt-h"></span></div>
-      <div class="field"><label for="g-ten">Tenure (months)</label><input id="g-ten" type="number" min="1" max="480" value="84"><span class="hint" id="g-ten-h"></span></div>
-      <h3>If floating rates rise</h3>
-      <div class="row2">
-        <div class="field"><label for="g-up">Rise by (%)</label><input id="g-up" type="number" step="0.05" value="0.50"></div>
+      <div class="field"><label for="g-ten">Tenure (months)</label><input id="g-ten" type="number" min="2" max="480" value="84"><span class="hint" id="g-ten-h"></span></div>
+      <h3>2. Do you plan to pay it off early?</h3>
+      <div class="seg" id="g-plan"><button type="button" data-v="none" aria-pressed="true">No, to the end</button><button type="button" data-v="part" aria-pressed="false">Part-pay</button><button type="button" data-v="close" aria-pressed="false">Close early</button></div>
+      <div id="g-part-wrap" hidden>
+        <div class="row2">
+          <div class="field"><label for="g-pp">Amount (₹)</label><input id="g-pp" type="number" min="0" step="10000" value="200000"></div>
+          <div class="field"><label for="g-ppm">After EMI no.</label><input id="g-ppm" type="number" min="1" value="24"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="g-rep"> Pay this amount every year</label>
+      </div>
+      <div class="field" id="g-close-wrap" hidden><label for="g-cm">Close after EMI no.</label><input id="g-cm" type="number" min="1" value="36"></div>
+      <span class="hint" id="g-plan-h"></span>
+      <h3>3. What do you expect floating rates to do?</h3>
+      <div class="seg" id="g-view"><button type="button" data-v="fall" aria-pressed="false">Fall</button><button type="button" data-v="flat" aria-pressed="false">Stay</button><button type="button" data-v="rise" aria-pressed="true">Rise</button></div>
+      <div class="row2" id="g-view-wrap">
+        <div class="field"><label for="g-up">Change by (%)</label><input id="g-up" type="number" step="0.05" value="0.50"></div>
         <div class="field"><label for="g-upm">From EMI no.</label><input id="g-upm" type="number" min="1" value="3"></div>
       </div>
-      <span class="hint">Applies only to floating offers. Enter a negative number to test a rate cut, or 0 for no change.</span>
-      <h3>If you prepay</h3>
-      <div class="row2">
-        <div class="field"><label for="g-pp">Lump sum (₹)</label><input id="g-pp" type="number" min="0" step="10000" value="200000"></div>
-        <div class="field"><label for="g-ppm">After EMI no.</label><input id="g-ppm" type="number" min="1" value="24"></div>
-      </div>
-      <span class="hint">Enter 0 if you don't plan to prepay.</span>
-      <label class="check"><input type="checkbox" id="g-gst" checked> Add 18% GST to fees and charges</label>
+      <span class="hint" id="g-view-h"></span>
+      <h3>4. What matters more?</h3>
+      <div class="seg" id="g-pri"><button type="button" data-v="cost" aria-pressed="true">Lowest cost</button><button type="button" data-v="safe" aria-pressed="false">Steady EMI</button></div>
+      <span class="hint" id="g-pri-h"></span>
+      <h3>Rules</h3>
+      <label class="check"><input type="checkbox" id="g-rbi" checked> Floating loans have no prepayment charge (RBI rule for individuals, from 1 Jan 2026)</label>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="g-gst" checked> Add 18% GST to fees and charges</label>
     </div>
     <div class="results">
+      <div class="kpis">
+        <div class="kpi hero"><div class="k">Best for you</div><div class="v" id="g-pick">–</div><div class="s" id="g-pick-s"></div></div>
+        <div class="kpi"><div class="k" id="g-k2">Margin</div><div class="v" id="g-v2">–</div><div class="s" id="g-s2"></div></div>
+        <div class="kpi"><div class="k">Charges in your plan</div><div class="v" id="g-v3">–</div><div class="s" id="g-s3"></div></div>
+        <div class="kpi"><div class="k">Fixed wins if rates rise</div><div class="v" id="g-be">–</div><div class="s" id="g-be-s"></div></div>
+      </div>
+      <div class="card"><h4>Our recommendation</h4><p class="say" id="g-say"></p></div>
       <div class="card"><h4>Offers <span class="example">Example</span></h4>
-        <p class="note" style="margin-bottom:10px">Rates from our chat for CIBIL 790. In the fee box, enter each bank's processing plus documentation charges. Stamp duty and RTO are the same at every bank, so leave them out.</p>
+        <p class="note" style="margin-bottom:10px">Rates from our chat for CIBIL 790. Check the charges in each sanction letter. In the fee box, enter each bank's processing plus documentation charges. Stamp duty and RTO are the same at every bank, so leave them out.</p>
         <div class="list" id="g-offers"></div>
         <button class="add" type="button" id="g-add" style="margin-top:8px">+ Add an offer</button></div>
-      <div class="card"><h4>Result</h4>
-        <div class="tablewrap free"><table id="g-table"><thead><tr><th>Bank</th><th>First EMI</th><th>Interest</th><th>Fees + charges</th><th>Total cost</th><th>vs cheapest</th></tr></thead><tbody></tbody></table></div>
-        <p class="say" id="g-say" style="margin-top:10px"></p></div>
+      <div class="card"><h4>Cost of each offer, your plan</h4>
+        <div class="tablewrap free"><table id="g-table"><thead><tr><th>Bank</th><th>EMI</th><th>Interest</th><th>Fees</th><th>Charges</th><th>Total cost</th><th>vs best</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="card"><h4>What if you are wrong about rates?</h4>
+        <p class="note" style="margin-bottom:10px">Total cost of each offer if floating rates change by this much from EMI <span id="g-upm2"></span>. The cheapest in each column is in bold. Fixed offers never move.</p>
+        <div class="tablewrap free"><table id="g-what"><thead></thead><tbody></tbody></table></div></div>
     </div>
   </div>
 </section>
@@ -617,7 +741,8 @@ const offTpl=(k,d)=>`<div class="field" style="padding-right:22px"><label for="o
    <div class="field"><label for="of${k}r">Rate (%)</label><input id="of${k}r" data-f="rate" type="number" step="0.05" value="${d.rate??8}"></div>
    <div class="field"><label for="of${k}t">Rate type</label><select id="of${k}t" data-f="type"><option value="floating"${d.type!=='fixed'?' selected':''}>Floating</option><option value="fixed"${d.type==='fixed'?' selected':''}>Fixed</option></select></div>
    <div class="field"><label for="of${k}f">Fees (₹)</label><input id="of${k}f" data-f="fee" type="number" min="0" step="100" value="${d.fee??0}"></div>
-   <div class="field"><label for="of${k}c">Prepay charge (%)</label><input id="of${k}c" data-f="ppc" type="number" min="0" step="0.5" value="${d.ppc??0}"></div></div>`;
+   <div class="field"><label for="of${k}c">Part-pay charge (%)</label><input id="of${k}c" data-f="ppc" type="number" min="0" step="0.5" value="${d.ppc??0}"></div>
+   <div class="field"><label for="of${k}x">Closure charge (%)</label><input id="of${k}x" data-f="fcc" type="number" min="0" step="0.5" value="${d.fcc??d.ppc??0}"></div></div>`;
 
 function schedule(tb,rows,start,cols){
   tb.innerHTML=''; const ys=[]; rows.forEach(r=>{ const y=Math.ceil(r.m/12); (ys[y-1]=ys[y-1]||[]).push(r); });
@@ -868,17 +993,88 @@ bind(['h-amt','h-rate','h-ten','h-start','h-x','h-xm','h-cm','h-mx','h-ms','h-pp
 // ---------- 6. COMPARE ----------
 const gOff=makeList('g-offers',offTpl,()=>calcG());
 $('g-add').onclick=()=>{ gOff.add({name:'Another bank',rate:8,type:'floating',fee:0,ppc:0}); calcG(); save(); };
+const gPlan=seg('g-plan',()=>calcG());
+const gView=seg('g-view',()=>{ $('g-up').value={fall:-0.5,flat:0,rise:0.5}[gView()]; calcG(); });
+const gPri=seg('g-pri',()=>calcG());
 function calcG(){
   hintAmt('g'); hintTen('g');
-  const P=num('g-amt'), n=Math.max(1,Math.round(num('g-ten',1))), up=num('g-up'), upm=num('g-upm',3), lump=num('g-pp'), lm=num('g-ppm'), gst=$('g-gst').checked, g=gst?1.18:1;
-  const res=gOff.items().map(o=>{ const s=simulate({P,rate:o.rate||0,n,rateChanges:o.type==='floating'&&up?[{m:upm,rate:(o.rate||0)+up}]:[],rateMode:'tenure',prepays:lump>0?[{kind:'once',amount:lump,m:lm}]:[],prepayMode:'tenure',ppCharge:o.ppc||0,gst});
-    const fee=(o.fee||0)*g; return {o,s,fee,cost:s.totI+fee+s.charges}; });
-  if(!res.length){ $('g-table').tBodies[0].innerHTML=''; $('g-say').textContent='Add an offer to compare.'; return; }
-  const min=Math.min(...res.map(r=>r.cost)), best=res.find(r=>r.cost===min);
-  $('g-table').tBodies[0].innerHTML=res.map(r=>`<tr${r===best?' class="hl"':''}><td>${esc(r.o.name)||'—'} <span class="tag">${r.o.type==='fixed'?'Fixed':'Floating'} ${pct(r.o.rate||0)}</span></td><td>${inr(r.s.firstEmi)}</td><td>${inr(r.s.totI)}</td><td>${inr(r.fee+r.s.charges)}</td><td class="${r===best?'best':''}">${inr(r.cost)}</td><td>${r===best?'<span class="best">Cheapest</span>':'+'+inr(r.cost-min)}</td></tr>`).join('');
-  $('g-say').textContent=`With these assumptions, ${best.o.name||'the first offer'} costs the least. Total cost is the interest plus fees and charges you pay on top of the ${short(P)} you borrow. Change the rate rise or the prepayment to test other cases.`;
+  const P=num('g-amt'), n=Math.max(2,Math.round(num('g-ten',2))), plan=gPlan(), view=gView(), pri=gPri(), gst=$('g-gst').checked, g=gst?1.18:1, rbi=$('g-rbi').checked;
+  const up=num('g-up'), upm=Math.max(1,Math.round(num('g-upm',3))), lump=num('g-pp'), lm=Math.max(1,Math.round(num('g-ppm',1))), rep=$('g-rep').checked, cm=Math.min(Math.max(1,Math.round(num('g-cm',1))),n-1);
+  $('g-part-wrap').hidden=plan!=='part'; $('g-close-wrap').hidden=plan!=='close'; $('g-view-wrap').hidden=view==='flat';
+  $('g-upm2').textContent=upm;
+  const offers=gOff.items().filter(o=>isFinite(o.rate));
+  const pc=o=>(rbi&&o.type==='floating')?0:(o.ppc||0), fc=o=>(rbi&&o.type==='floating')?0:(isFinite(o.fcc)?o.fcc:(o.ppc||0));
+  const cost=(o,rise)=>{ const fl=o.type==='floating';
+    const a={P,rate:o.rate||0,n,rateChanges:fl&&rise?[{m:upm,rate:Math.max(0,(o.rate||0)+rise)}]:[],rateMode:'tenure',gst};
+    if(plan==='part'&&lump>0){ a.prepays=[rep?{kind:'every',every:12,amount:lump,m:lm}:{kind:'once',amount:lump,m:lm}]; a.prepayMode='tenure'; a.ppCharge=pc(o); }
+    if(plan==='close'){ a.foreclose=cm; a.fcCharge=fc(o); }
+    const s=simulate(a), fee=(o.fee||0)*g; return {o,s,fee,chg:s.charges,cost:s.totI+fee+s.charges,name:o.name||'Unnamed offer'}; };
+  // answers explained
+  const fixedPc=offers.filter(o=>o.type==='fixed'&&(pc(o)>0||fc(o)>0));
+  $('g-plan-h').textContent= plan==='none'
+    ? (fixedPc.length? `Careful: ${fixedPc.map(o=>o.name||'a fixed offer').join(' and ')} charge${fixedPc.length>1?'':'s'} a fee if you pay early. If you might part-pay or close even once, pick one of the other two options.` : 'Pick "Part-pay" or "Close early" if you might pay early, so charges are counted.')
+    : plan==='part' ? 'Charges on part-payments are counted for each offer.' : 'The closure charge is counted for each offer.';
+  $('g-view-h').textContent= view==='flat' ? 'Floating rates stay where they are today.' : view==='rise' ? 'Floating rates go up by this much from the EMI you choose. Fixed offers are not affected.' : 'Floating rates go down by this much (a negative number) from the EMI you choose. Fixed offers are not affected.';
+  $('g-pri-h').textContent= pri==='safe' ? 'Picks the cheapest fixed-rate offer, so your EMI never changes.' : 'Picks the offer with the lowest total cost for your answers.';
+  if(!offers.length){ ['g-pick','g-v2','g-v3','g-be'].forEach(i=>$(i).textContent='–'); ['g-pick-s','g-s2','g-s3','g-be-s'].forEach(i=>$(i).textContent=''); $('g-table').tBodies[0].innerHTML=''; $('g-what').tBodies[0].innerHTML=''; $('g-what').tHead.innerHTML=''; $('g-say').textContent='Add an offer to compare.'; return; }
+  const res=offers.map(o=>cost(o,up)).sort((x,y)=>x.cost-y.cost), best=res[0];
+  const fixedR=res.filter(r=>r.o.type==='fixed'), floatR=res.filter(r=>r.o.type!=='fixed');
+  const pick= pri==='safe' && fixedR.length ? fixedR[0] : best;
+  // break-even rate rise
+  let be='–', beS='Needs one fixed and one floating offer', beNum=null;
+  if(fixedR.length&&floatR.length){
+    const fx=fixedR[0].cost, fl=r=>Math.min(...floatR.map(x=>cost(x.o,r).cost));
+    if(fl(0)>=fx){ be='Already'; beS='Fixed is cheaper even if rates stay put'; beNum=0; }
+    else if(fl(10)<fx){ be='Above 10%'; beS='Floating wins unless rates jump a lot'; beNum=Infinity; }
+    else { let lo=0,hi=10; for(let k=0;k<30;k++){ const m=(lo+hi)/2; if(fl(m)<fx) lo=m; else hi=m; } beNum=(lo+hi)/2; be='+'+pct(beNum); beS='Rise from EMI '+upm+' at which '+fixedR[0].name+' beats the cheapest floating'; }
+  }
+  // KPIs
+  $('g-pick').textContent=pick.name; $('g-pick-s').textContent=inr(pick.cost)+' total cost';
+  const others=res.filter(r=>r!==pick), nxt=others[0];
+  if(pick!==best){ $('g-k2').textContent='Price of a steady EMI'; $('g-v2').textContent=inr(pick.cost-best.cost); $('g-s2').textContent='More than '+best.name+', the cheapest'; }
+  else if(nxt){ $('g-k2').textContent='Saving vs next best'; $('g-v2').textContent=inr(nxt.cost-pick.cost); $('g-s2').textContent='Less than '+nxt.name; }
+  else { $('g-k2').textContent='Saving vs next best'; $('g-v2').textContent='–'; $('g-s2').textContent='Add another offer'; }
+  $('g-v3').textContent=inr(pick.chg); $('g-s3').textContent= plan==='none'? 'No early payment planned' : (pick.chg? 'Part-payment or closure charge' : 'No charge for this offer');
+  $('g-be').textContent=be; $('g-be-s').textContent=beS;
+  // recommendation text
+  const planTxt= plan==='none'? 'run the loan to the end' : plan==='part'? `part-pay ${inr(lump)} after EMI ${lm}${rep?' and again every year':''}` : `close the loan after EMI ${cm}`;
+  const viewTxt= view==='flat'? 'floating rates staying where they are' : view==='rise'? `floating rates rising by ${pct(Math.abs(up))} from EMI ${upm}` : `floating rates falling by ${pct(Math.abs(up))} from EMI ${upm}`;
+  const parts=[];
+  parts.push(`You plan to ${planTxt}, and expect ${viewTxt}. On those answers, <b>${esc(pick.name)}</b> ${pri==='safe'&&pick!==best?'is the cheapest <b>fixed</b> offer':'costs the least'}: about <b>${inr(pick.cost)}</b> in interest, fees and charges${pick.chg?` (including ${inr(pick.chg)} in ${plan==='close'?'closure':'part-payment'} charges)`:''}.`);
+  if(pri==='safe'){
+    if(!fixedR.length) parts.push(`You asked for a steady EMI, but none of your offers is fixed. Add a fixed offer to compare. For now the cheapest overall is shown.`);
+    else if(pick!==best) parts.push(`You asked for a steady EMI, so I chose a fixed rate. That costs <b>${inr(pick.cost-best.cost)}</b> more than the cheapest offer (${esc(best.name)}). That is the price of knowing your EMI will not change.`);
+    else parts.push(`You asked for a steady EMI, and the cheapest offer is also fixed, so you do not have to pay extra for it.`);
+  } else if(nxt) parts.push(`That is <b>${inr(nxt.cost-pick.cost)}</b> less than the next best, ${esc(nxt.name)}.`);
+  // do prepay charges change the answer?
+  const noChg=[...res].sort((x,y)=>(x.cost-x.chg)-(y.cost-y.chg))[0];
+  const chgLines=res.filter(r=>r.chg>0).map(r=>`${esc(r.name)} would charge <b>${inr(r.chg)}</b>`);
+  if(plan!=='none' && chgLines.length){
+    parts.push(`<b>Charges:</b> ${chgLines.join(', ')} for ${plan==='close'?'closing early':'your part-payment'}.${noChg!==best?` Without the charges, ${esc(noChg.name)} would look cheapest. The charges change the winner to ${esc(best.name)}.`:''}`);
+  } else if(plan!=='none' && rbi && floatR.length) parts.push(`<b>Charges:</b> floating offers carry no part-payment or closure charge, so paying early costs nothing there.`);
+  if(plan==='none'){
+    const cm0=Math.min(36,n-1), lines=offers.filter(o=>fc(o)>0).map(o=>{ const bal=simulate({P,rate:o.rate||0,n}).rows[cm0-1]; return bal? `${esc(o.name||'an offer')} would charge <b>${inr(bal.bal*fc(o)/100*g)}</b>` : ''; }).filter(Boolean);
+    if(lines.length) parts.push(`<b>If your plans change:</b> closing after EMI ${cm0} would cost nothing extra on floating offers, but ${lines.join(', ')}. Pick "Close early" above to test it properly.`);
+  }
+  // rate risk
+  if(pick.o.type!=='fixed'){
+    if(fixedR.length&&beNum!==null&&isFinite(beNum)&&beNum>0) parts.push(`<b>Rate risk:</b> a floating rate can move. If rates rise by more than <b>${pct(beNum)}</b> from EMI ${upm}, ${esc(fixedR[0].name)}, which is fixed, would cost less.`);
+    else if(fixedR.length&&beNum===Infinity) parts.push(`<b>Rate risk:</b> floating rates would have to rise by more than 10% before a fixed offer is cheaper.`);
+    else if(!fixedR.length) parts.push(`<b>Rate risk:</b> floating rates can move, and none of your offers is fixed. See the table below for rises of up to 2%.`);
+  } else {
+    const fl=floatR[0]; if(fl){ const flat=cost(fl.o,0); const ownFlat=cost(pick.o,0); if(flat.cost<ownFlat.cost) parts.push(`<b>Trade-off:</b> your rate is locked, so a rise cannot hurt you, but if rates just stay put, ${esc(fl.name)} would cost ${inr(ownFlat.cost-flat.cost)} less.`); }
+  }
+  $('g-say').innerHTML=parts.join('<br><br>');
+  // main table
+  $('g-table').tBodies[0].innerHTML=res.map(r=>{ const fl=r.o.type!=='fixed', rw=r.s.rows, after=fl&&up&&rw.length? rw[Math.min(upm,rw.length)-1].emi : null, isPick=r===pick;
+    const free=plan!=='none'&&r.chg===0&&rbi&&fl? 'None (floating)' : inr(r.chg);
+    return `<tr${isPick?' class="hl"':''}><td>${esc(r.name)} <span class="tag">${fl?'Floating':'Fixed'} ${pct(r.o.rate||0)}</span>${isPick?' <span class="tag">Your pick</span>':''}</td><td>${inr(r.s.firstEmi)}${after&&Math.abs(after-r.s.firstEmi)>=1?` <span class="hint">→ ${inr(after)}</span>`:''}</td><td>${inr(r.s.totI)}</td><td>${inr(r.fee)}</td><td>${free}</td><td class="${r===best?'best':''}">${inr(r.cost)}</td><td>${r===best?'<span class="best">Cheapest</span>':'+'+inr(r.cost-best.cost)}</td></tr>`; }).join('');
+  // what-if table
+  const shifts=[-1,0,1,2], grid=offers.map(o=>shifts.map(x=>cost(o,x).cost)), mins=shifts.map((_,j)=>Math.min(...grid.map(r=>r[j])));
+  $('g-what').tHead.innerHTML='<tr><th>Bank</th>'+shifts.map(x=>`<th>${x===0?'No change':x<0?'Fall '+pct(-x):'Rise '+pct(x)}</th>`).join('')+'</tr>';
+  $('g-what').tBodies[0].innerHTML=offers.map((o,i)=>`<tr><td>${esc(o.name)||'—'} <span class="tag">${o.type==='fixed'?'Fixed':'Floating'}</span></td>`+grid[i].map((c,j)=>`<td class="${c===mins[j]?'best':''}">${inr(c)}</td>`).join('')+'</tr>').join('');
 }
-bind(['g-amt','g-ten','g-up','g-upm','g-pp','g-ppm','g-gst'],calcG);
+bind(['g-amt','g-ten','g-up','g-upm','g-pp','g-ppm','g-rep','g-cm','g-rbi','g-gst'],calcG);
 
 // ---------- formula panels ----------
 document.addEventListener('click',e=>{ const b=e.target.closest('.fxbtn'); if(!b) return; const id=b.dataset.fx, card=$('fx-'+id); if(!card) return;
@@ -913,7 +1109,7 @@ if(saved){
   if(!(saved.lists&&saved.lists['a-rc'])) (saved.lists&&saved.lists['b-rc']||[{m:3,rate:7.95},{m:5,rate:8.20}]).forEach(d=>aRC.add(d));
 } else {
   aRC.add({m:3,rate:7.95}); aRC.add({m:5,rate:8.20});
-  gOff.add({name:'HDFC (pre-approved)',rate:8.15,type:'fixed',fee:0,ppc:3});
+  gOff.add({name:'HDFC (pre-approved)',rate:8.15,type:'fixed',fee:0,ppc:3,fcc:3});
   gOff.add({name:'UCO (direct, CIBIL 750–824)',rate:7.70,type:'floating',fee:0,ppc:0});
   gOff.add({name:'Union Bank',rate:8.00,type:'floating',fee:0,ppc:0});
 }
